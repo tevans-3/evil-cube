@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<div id="info">
+</div>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background-color: black;
+        }
+    </style>
+
+    <img id="logo" src="/logo.png"></img>
+</head>
+<body>
+    <script type="module" src="/main.js"></script>
+</body>
+</html>
+<style>
+    #info {
+        position: absolute;
+        top: 10px;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        z-index: 100;
+    }
+
+    #logo {
+        position: absolute;
+        top: -17em;
+        left: 3.5em;
+        width: 450px;
+        z-index: 1000;
+    }
+</style>
