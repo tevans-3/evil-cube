@@ -33,12 +33,14 @@ class PickHelper {
 
         if (intersectedObjects.length) { 
             this.pickedObject = intersectedObjects[0].object;
+            console.log(this.pickedObject);
             this.pickedObject.material.forEach(material => material.emissive.setHex((time*8) %2 > 1 ? 0xFFFF00 : 0xFF0000));
         }
     }
 }
 
 const pickPosition = {x: 0, y: 0}; 
+const mousePosition = {x: 0, y: 0}; 
 clearPickPosition();
 
 function getCanvasRelativePosition(event) {
@@ -52,16 +54,33 @@ function getCanvasRelativePosition(event) {
 function setPickPosition(event) {
   const pos = getCanvasRelativePosition(event);
   pickPosition.x = (pos.x / canvas.width ) *  2 - 1;
-  pickPosition.y = (pos.y / canvas.height) * -2 + 1;  // note we flip Y
+  pickPosition.y = (pos.y / canvas.height) * -2 + 1;  
 }
  
 function clearPickPosition() {
   pickPosition.x = -100000;
   pickPosition.y = -100000;
 }
- 
-window.addEventListener('mousemove', setPickPosition);
-window.addEventListener('mouseout', clearPickPosition);
+
+var mouseMoveDirection = ''; 
+
+window.addEventListener('mousedown', (e) => { 
+
+setPickPosition(e);});
+window.addEventListener('mouseup', clearPickPosition);
+window.addEventListener('mousemove', (e) => { 
+    if (e.movementX > 0) {
+        mouseMoveDirection = "Right"; 
+    } else if (e.movementX < 0) { 
+        mouseMoveDirection = "Left"; 
+    }
+
+    if (e.movementY > 0) { 
+        mouseMoveDirection = "Down";  
+    } else if (e.movementY < 0) { 
+        mouseMoveDirection = "Up"; 
+    }
+}); 
 window.addEventListener('mouseleave', clearPickPosition);
 
 window.addEventListener('touchstart', (event) => { 
@@ -112,26 +131,13 @@ const canvas = renderer.domElement;
 document.body.appendChild(canvas);
 var time = 1;
 
+const moves = { 'U':'', 'D'
 
+/*
 var orbitControl = new OrbitControls(camera, canvas); 
 var SCREEN_HEIGHT = window.innerHeight; 
 var SCREEN_WIDTH = window.innerWidth; 
 
-
-function isMouseOverCube(mouseX, mouseY) { 
-    var directionVector = new THREE.Vector3(); 
-
-    var x = ( mouseX / SCREEN_WIDTH) * 2 -1; 
-    var y = -( mouseY / SCREEN_HEIGHT ) * 2 + 1; 
-
-    directionVector.set(x, y, 1); 
-
-    directionVector.sub(camera.position); 
-    directionVector.normalize(); 
-    raycaster.setFromCamera(directionVector, camera); 
-
-    return raycaster.intersectObjects(allCubes, true).length > 0; 
-}
 
 //Returns the axis with the greatest magnitude in vector v 
 function principalComponent(v) { 
@@ -238,7 +244,7 @@ var onCubeMouseUp = function(e, cube) {
         }
     }
 };
-
+*/
 const NUM_CUBELETS_PER_ROW = 3;
 const CUBELET_SIZE = 1 / 3;
 const FACE_COLORS = ["#FF0000",
