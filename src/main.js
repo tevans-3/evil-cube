@@ -1,5 +1,4 @@
-import * as evil from './api.js';
-import { _principalComponent, pickPosition } from './shared.js'; 
+import * as evil from './evil/api.js';
 import * as THREE from 'three';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
 import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
@@ -31,13 +30,13 @@ function _getCanvasRelativePosition(event) {
  
 function _setPickPosition(event) {
   const pos = _getCanvasRelativePosition(event);
-  pickPosition.x = (pos.x / canvas.width ) *  2 - 1;
-  pickPosition.y = (pos.y / canvas.height) * -2 + 1;  
+  evil.pickPosition.x = (pos.x / canvas.width ) *  2 - 1;
+  evil.pickPosition.y = (pos.y / canvas.height) * -2 + 1;  
 }
  
 function _clearPickPosition() {
-  pickPosition.x = -100000;
-  pickPosition.y = -100000;
+  evil.pickPosition.x = -100000;
+  evil.pickPosition.y = -100000;
 }
 
 

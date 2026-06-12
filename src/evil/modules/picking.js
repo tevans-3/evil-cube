@@ -1,5 +1,5 @@
 import * as THREE from 'three'; 
-import { _principalComponent, pickPosition } from './shared.js'; 
+import { _principalComponent, pickPosition } from '../shared.js'; 
 
 export class PickHelper { 
     constructor() { 
