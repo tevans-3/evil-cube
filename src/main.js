@@ -13,6 +13,8 @@ import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 // 3. https://cs.stanford.edu/people/karpathy/reinforcejs/
 //
 
+const debug = true; 
+
 class PickHelper { 
     constructor() { 
         this.raycaster = new THREE.Raycaster();
@@ -22,7 +24,6 @@ class PickHelper {
     }
 
     pick(normalizedPosition, scene, camera, time) {
-        console.log(this.pickedObject);
         if (this.pickedObject) {
             this.pickedObject.material.forEach(material => material.emissive.setHex(this.pickedObjectSavedColor)); 
             this.pickedObject = undefined; 
@@ -131,7 +132,6 @@ const canvas = renderer.domElement;
 document.body.appendChild(canvas);
 var time = 1;
 
-const moves = { 'U':'', 'D'
 
 /*
 var orbitControl = new OrbitControls(camera, canvas); 
@@ -245,6 +245,32 @@ var onCubeMouseUp = function(e, cube) {
     }
 };
 */
+
+
+// cubelet property: name, formatted like so: cubelet_{i}{j}{k}
+// where each of i,j,k are loop counters in nested initialization loop 
+// 
+// if direction is 'left' and 'j' == '0':  
+//     this is rotation around Y axis 
+//     the value of 'j' gives you the group of cubelets to rotate  (y)
+// if direction is 'right' and 'j' == '0': 
+//     this is rotation around Y axis 
+//     the value of 'j' gives you the group of cubelets to rotate 
+// if direction is 'right' and 'j' == '2': 
+//     this is rotation around Z axis
+//     the value of 'k' gives you the group of cubelets to rotate 
+// if direction is 'up':    the value of 'i' gives you the group of cubelets to rotate 
+// if direction is 'down':  the value of 'i' 
+// 
+function rotate(cube) { 
+
+}
+
+if (debug) { 
+    // X == red, Y == green, Z == blue
+    const axesHelper = new THREE.AxesHelper(5); scene.add(axesHelper);
+}
+
 const NUM_CUBELETS_PER_ROW = 3;
 const CUBELET_SIZE = 1 / 3;
 const FACE_COLORS = ["#FF0000",
