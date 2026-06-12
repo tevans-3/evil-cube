@@ -15,10 +15,27 @@ import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 
 const debug = true; 
 
+function _principalComponent(v) { 
+    var maxAxis = 'x', 
+        max = Math.abs(v.x); 
+
+    if (Math.abs(v.y) > max) { 
+        maxAxis = 'y';
+        max = Math.abs(v.y); 
+    }
+
+    if (Math.abs(v.z) > max) { 
+        maxAxis = 'z'; 
+        max = Math.abs(v.z); 
+    }
+    return maxAxis; 
+}
+
 class PickHelper { 
     constructor() { 
         this.raycaster = new THREE.Raycaster();
         this.raycaster.layers.set(0);
+        this.faceNormal = null; 
         this.pickedObject = null; 
         this.pickedObjectSavedColor = 0; 
     }
@@ -31,10 +48,13 @@ class PickHelper {
 
         this.raycaster.setFromCamera(normalizedPosition, camera); 
         const intersectedObjects = this.raycaster.intersectObjects(scene.children, true);
-
+        
         if (intersectedObjects.length) { 
             this.pickedObject = intersectedObjects[0].object;
-            console.log(this.pickedObject);
+            this.faceNormal = intersectedObjects[0].face.normal;
+            const n = this.faceNormal.clone() 
+                        .transformDirection(this.pickedObject.matrixWorld);
+            console.log(intersectedObjects[0].face);
             this.pickedObject.material.forEach(material => material.emissive.setHex((time*8) %2 > 1 ? 0xFFFF00 : 0xFF0000));
         }
     }
@@ -132,137 +152,8 @@ const canvas = renderer.domElement;
 document.body.appendChild(canvas);
 var time = 1;
 
-
-/*
-var orbitControl = new OrbitControls(camera, canvas); 
-var SCREEN_HEIGHT = window.innerHeight; 
-var SCREEN_WIDTH = window.innerWidth; 
-
-
-//Returns the axis with the greatest magnitude in vector v 
-function principalComponent(v) { 
-    var maxAxis = 'x', 
-        max = Math.abs(v.x); 
-
-    if (Math.abs(v.y) > max) { 
-        maxAxis = 'y'; 
-        max = Math.abs(v.y); 
-    }
-    if (Math.abs(v.z) > max) { 
-        maxAxis = 'z'; 
-        max = Math.abs(v.z); 
-    }
-    return maxAxis; 
-}
-
-function nearlyEqual(a, b, d) { 
-    d = d || 0.001; 
-    return Math.abs(a - b) <= 3;
-}
-
-var clickVector, clickFace; 
-
-var lastCube; 
-
-function setActiveGroup(axis) { 
-    if (clickVector) { 
-        activeGroup = [];
-
-        allCubes.forEach(function(cube) { 
-            if(nearlyEqual(cube.rubikPosition[axis], clickVector[axis])) { 
-                activeGroup.push(cube); 
-            }
-        }); 
-    } else { } 
-}
-
-var startNextMove = function() { 
-    if (clickVector) { 
-        if (!isMoving) { 
-            isMoving = true; 
-            moveAxis = axis; 
-            moveDirection = direction; 
-
-            setActiveGroup(axis); 
-
-            pivot.rotation.set(0,0,0); 
-            pivot.updateMatrixWorld(); 
-            scene.add(pivot); 
-
-            activeGroup.forEach(function(e) { 
-                THREE.SceneUtils.attach(e, scene, pivot); 
-            }); 
-        }
-    }
-}
-
-var onCubeMouseDown = function(e, cube) { 
-    disableCameraControl(); 
-    if(true || !isMoving) { 
-        clickVector = cube.rubikPosition.clone(); 
-        var centroid = e.targetFace.centroid.clone(); 
-        centroid.applyMatrix4(cube.matrixWorld); 
-
-        if (nearlyEqual(Math.abs(centroid.x), maxExtent))
-            clickFace = 'x'; 
-        else if (nearlyEqual(Math.abs(centroid.y), maxExtent))
-            clickFace = 'y'; 
-        else if (nearlyEqual(Math.abs(centroid.z), maxExtent))
-            clickFace = 'z'; 
-    }
-}; 
-
-var transitions = {
-    'x': {'y': 'z', 'z': 'y'}, 
-    'y': {'x': 'z', 'z': 'x'}, 
-    'z': {'x': 'y', 'y': 'x'}
-}
-
-var onCubeMouseUp = function(e, cube) { 
-    if (clickVector) { 
-        var dragVector = cube.rubikPosition.clone(); 
-        dragVector.sub(clickVector); 
-
-        if (dragVector.length() > cubeSize) { 
-            var dragVectorOtherAxes = dragVector.clone();
-            dragVectorOtherAxes[clickFace] = 0; 
-            var maxAxis = principalComponent(dragVectorOtherAxes); 
-            var rotateAxis = transitions[clickFace][maxAxis], 
-                direction = dragVector[maxAxis] >= 0 ? 1 : -1;
-            if (clickFace == 'z' && rotateAxis == 'x' || 
-                clickFace == 'x' && rotateAxis == 'z' ||
-                clickFace == 'y' && rotateAxis == 'z') 
-                direction *= -1; 
-
-            if (clickFace == 'x' && clickVector.x > 0 || 
-                clickFace == 'y' && clickVector.y < 0 ||
-                clickFace == 'z' && clickVector.z < 0)
-                direction *= -1; 
-
-            startNextMove();
-            enableCameraControl(); 
-        }
-    }
-};
-*/
-
-
-// cubelet property: name, formatted like so: cubelet_{i}{j}{k}
-// where each of i,j,k are loop counters in nested initialization loop 
 // 
-// if direction is 'left' and 'j' == '0':  
-//     this is rotation around Y axis 
-//     the value of 'j' gives you the group of cubelets to rotate  (y)
-// if direction is 'right' and 'j' == '0': 
-//     this is rotation around Y axis 
-//     the value of 'j' gives you the group of cubelets to rotate 
-// if direction is 'right' and 'j' == '2': 
-//     this is rotation around Z axis
-//     the value of 'k' gives you the group of cubelets to rotate 
-// if direction is 'up':    the value of 'i' gives you the group of cubelets to rotate 
-// if direction is 'down':  the value of 'i' 
-// 
-function rotate(cube) { 
+function rotate(cube, clickedCubelet) { 
 
 }
 
