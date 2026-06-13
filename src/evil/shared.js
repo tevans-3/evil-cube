@@ -1,4 +1,6 @@
-export var pickPosition = {x: 0, y: 0}; 
+export var mousePosition = { x: 0, y: 0 };
+
+export var pickPosition = { x: 0, y: 0 }; 
 
 export function _principalComponent(v) { 
     var maxAxis = 'x', 

@@ -1,5 +1,5 @@
 import * as THREE from 'three'; 
-import { _principalComponent, pickPosition } from '../shared.js'; 
+import { _principalComponent, pickPosition, mousePosition } from '../shared.js'; 
 
 export class PickHelper { 
     constructor() { 
@@ -11,7 +11,7 @@ export class PickHelper {
         this.pickedObjectSavedColor = 0; 
     }
 
-    pick(normalizedPosition, scene, camera, time) {
+    pick(normalizedPosition, scene, camera, time, state) {
         if (this.pickedObject) {
             this.pickedObject.material.forEach(material => material.emissive.setHex(this.pickedObjectSavedColor)); 
             this.pickedObject = undefined; 
@@ -61,6 +61,14 @@ export class PickHelper {
 
             // the sign gives us which specific face e.g. +X or -X 
             const side = Math.sign(worldNormal[axis]);
+
+            // we need to store this data in our global state object to help
+            // perform some calculations later 
+            state.clickedOnPoint = this.point; 
+            state.normalAxis = axis; 
+            state.clickedOnFacePlane = plane; 
+            state.clickedOnFace = side; 
+            state.worldNormal = worldNormal;
 
             this.pickedObject.material.forEach(material => material.emissive.setHex((time*8) %2 > 1 ? 0xFFFF00 : 0xFF0000));
         }

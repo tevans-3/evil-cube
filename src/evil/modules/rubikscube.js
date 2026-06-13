@@ -68,6 +68,7 @@ export class RubiksCube {
             }
         }
         scene.add(cube); 
+        return cube; 
     }
 
     rotate(cube, clickedCubelet) { 

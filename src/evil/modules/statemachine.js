@@ -3,13 +3,17 @@ import * as THREE from 'three';
 export class InteractionState { 
     constructor(mousePosition, clickedOnPoint=null, 
                 rotateAroundAxis=null, clickedOnFace=null, 
-                clickedOnFacePlane=null, dragDir=null) { 
+                clickedOnFacePlane=null, dragDir=null, 
+                dragEndPoint=null, worldNormal=null) { 
         this.mousePosition = mousePosition; 
         this.clickedOnPoint = clickedOnPoint; 
+        this.dragEndPoint = dragEndPoint; 
         this.rotateAroundAxis = rotateAroundAxis; 
         this.clickedOnFace = clickedOnFace;  
         this.clickedOnFacePlane = clickedOnFacePlane; 
         this.dragDir = dragDir; 
+        this.worldNormal = worldNormal;
+        this.normalAxis = null; 
     }
 }
 
@@ -31,23 +35,28 @@ export class UserInteractionStateMachine {
         }); 
     }
 
-    update(state) { 
+    update(state, action) { 
         switch (action) { 
             case "hovering":
-                this.wipeOldState(); 
-                this.hovering = true; 
+                this.wipeOldState();
+                this.hovering = true;
+                break; 
             case "clicking":
-                this.wipeOldState(); 
-                this.clicking = true; 
-            case "dragging": 
-                this.wipeOldState(); 
-                this.dragging = true; 
-            case "animating": 
-                this.wipeOldState(); 
-                this.animating = true;  
-            case "mouseup": 
-                this.wipeOldState(); 
-                this.stopped = true; 
+                this.wipeOldState();
+                this.clicking = true;
+                break;
+            case "dragging":
+                this.wipeOldState();
+                this.dragging = true;
+                break;
+            case "animating":
+                this.wipeOldState();
+                this.animating = true;
+                break;
+            case "mouseup":
+                this.wipeOldState();
+                this.stopped = true;
+                break;
             default:
                 return;
         }
