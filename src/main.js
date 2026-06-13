@@ -255,6 +255,6 @@ window.addEventListener('touchmove', (event) => {
 });
 
 window.addEventListener('touchend', (e) => {
-    event.preventDefault();
+    e.preventDefault();
     gestureUpLogic(e, touched = true);
 }); 
