@@ -13,7 +13,15 @@ export class InteractionState {
         this.clickedOnFacePlane = clickedOnFacePlane; 
         this.dragDir = dragDir; 
         this.worldNormal = worldNormal;
-        this.normalAxis = null; 
+        this.normalAxis = null;
+        this.clickedOnCubeletPosition = null; 
+        this.layerToRotate = null; 
+    }
+
+    reset() {
+        Object.entries(this).forEach(([key, value]) => {
+            this.key = null;
+        });
     }
 }
 

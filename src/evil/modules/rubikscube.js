@@ -47,8 +47,9 @@ export class RubiksCube {
                     cubelet.position.y += j / this.NUM_CUBELETS_PER_ROW;
                     cubelet.position.z += k / this.NUM_CUBELETS_PER_ROW;
                     cubelet.rubikPosition = cubelet.position.clone(); 
-
+                     
                     cubelet.name = `cubelet_${i}${j}${k}`;
+
                     let edgeLord = new THREE.BoxGeometry(this.CUBELET_SIZE, this.CUBELET_SIZE, this.CUBELET_SIZE); 
                     const edges = new THREE.EdgesGeometry(edgeLord, 1); 
                     const positions = edges.attributes.position.array;

@@ -22,15 +22,16 @@ export class PickHelper {
 
         if (intersectedObjects.length) { 
             if (!intersectedObjects[0].face) return;
-            this.pickedObject = intersectedObjects[0].object;
+            this.pickedObject = intersectedObjects[0].object; 
+            state.clickedOnCubeletPosition = this.pickedObject.rubikPosition.clone();  
             // faceNormal is the vector perpendicular to the clicked-on face 
             // of the cube's axes, of the face's in-plane axes, the face normal 
             // is the only out-of-plane axis (it's perpendicular)
             this.faceNormal = intersectedObjects[0].face.normal;
 
             // this is the clicked-on point, intersected by the camera's ray 
-            this.point = intersectedObjects[0].point; 
-
+            this.point = intersectedObjects[0].point.clone(); 
+            console.log(this.point === intersectedObjects[0].point);
             // .transformDirection is the rotation
             // applying it here transforms the face normal to the world normal 
             // (lifts it out of the cubelet's local geometry into the world geomtry)
@@ -64,7 +65,7 @@ export class PickHelper {
 
             // we need to store this data in our global state object to help
             // perform some calculations later 
-            state.clickedOnPoint = this.point; 
+            state.clickedOnPoint = this.point.clone(); 
             state.normalAxis = axis; 
             state.clickedOnFacePlane = plane; 
             state.clickedOnFace = side; 
