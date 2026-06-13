@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 
 export class InteractionState { 
-    constructor(mousePosition, clickedOnPoint=null, 
+    constructor(clickedOnPoint=null, 
                 rotateAroundAxis=null, clickedOnFace=null, 
                 clickedOnFacePlane=null, dragDir=null, 
                 dragEndPoint=null, worldNormal=null) { 
-        this.mousePosition = mousePosition; 
         this.clickedOnPoint = clickedOnPoint; 
         this.dragEndPoint = dragEndPoint; 
         this.rotateAroundAxis = rotateAroundAxis; 
@@ -16,11 +15,12 @@ export class InteractionState {
         this.normalAxis = null;
         this.clickedOnCubeletPosition = null; 
         this.layerToRotate = null; 
+        this.dragDistance= null; 
     }
 
     reset() {
         Object.entries(this).forEach(([key, value]) => {
-            this.key = null;
+            this[key] = null;
         });
     }
 }
@@ -28,6 +28,7 @@ export class InteractionState {
 export class UserInteractionStateMachine {
     constructor(state) { 
         this.hovering = true; 
+        this.picked = false; 
         this.clicking = false; 
         this.dragging = false; 
         this.animating = false; 
@@ -35,39 +36,42 @@ export class UserInteractionStateMachine {
         this.interactionState = state; 
     }
 
-    wipeOldState() { 
+    reset() { 
         Object.entries(this).forEach(([key, value]) => { 
             if (value) { 
-                this.key = false; 
+                this[key] = false;
             }
         }); 
     }
 
-    update(state, action) { 
+    update(action) { 
         switch (action) { 
             case "hovering":
-                this.wipeOldState();
+                this.reset();
                 this.hovering = true;
                 break; 
+            case "picked":
+                this.reset();
+                this.picked = true;
+                break;
             case "clicking":
-                this.wipeOldState();
+                this.reset();
                 this.clicking = true;
                 break;
             case "dragging":
-                this.wipeOldState();
+                this.reset();
                 this.dragging = true;
                 break;
             case "animating":
-                this.wipeOldState();
+                this.reset();
                 this.animating = true;
                 break;
             case "mouseup":
-                this.wipeOldState();
+                this.reset();
                 this.stopped = true;
                 break;
             default:
                 return;
         }
-        this.interactionState = state; 
     }
 }

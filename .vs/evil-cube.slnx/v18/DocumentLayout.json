@@ -3,8 +3,32 @@
   "WorkspaceRootPath": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\shared.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\shared.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\rubikscube.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\evil\\modules\\rubikscube.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\picking.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\evil\\modules\\picking.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\main.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\main.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\statemachine.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\evil\\modules\\statemachine.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\shared.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\evil\\shared.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\evil\\modules\\index.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\api.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:src\\evil\\api.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,11 +38,63 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "rubikscube.js",
+              "DocumentMoniker": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\rubikscube.js",
+              "RelativeDocumentMoniker": "src\\evil\\modules\\rubikscube.js",
+              "ToolTip": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\rubikscube.js",
+              "RelativeToolTip": "src\\evil\\modules\\rubikscube.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-06-13T03:41:12.525Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "picking.js",
+              "DocumentMoniker": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\picking.js",
+              "RelativeDocumentMoniker": "src\\evil\\modules\\picking.js",
+              "ToolTip": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\picking.js",
+              "RelativeToolTip": "src\\evil\\modules\\picking.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEEAAABMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-06-13T02:13:17.051Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "main.js",
+              "DocumentMoniker": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\main.js",
+              "RelativeDocumentMoniker": "src\\main.js",
+              "ToolTip": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\main.js",
+              "RelativeToolTip": "src\\main.js",
+              "ViewState": "AgIAAGgAAAAAAAAAAAAwwFwAAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-06-13T02:13:06.354Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "shared.js",
+              "DocumentMoniker": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\shared.js",
+              "RelativeDocumentMoniker": "src\\evil\\shared.js",
+              "ToolTip": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\shared.js",
+              "RelativeToolTip": "src\\evil\\shared.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-06-13T02:13:27.929Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Bookmark",
@@ -64,30 +140,56 @@
       "Orientation": 0,
       "VerticalTabListWidth": 256,
       "FloatingWindowState": {
-        "Id": "3824e1d2-2623-4922-a472-20ef022b7a5c",
-        "Display": 0,
-        "X": -13,
-        "Y": 82,
-        "Width": 649,
-        "Height": 757,
+        "Id": "2b603452-4cb9-4792-93bf-1a2ef0a66dfc",
+        "Display": 2,
+        "X": -41,
+        "Y": 359,
+        "Width": 1289,
+        "Height": 669,
         "WindowState": 2
       },
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "shared.js",
-              "DocumentMoniker": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\shared.js",
-              "RelativeDocumentMoniker": "src\\shared.js",
-              "ToolTip": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\shared.js",
-              "RelativeToolTip": "src\\shared.js",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAAAAAAAAAAAA==",
+              "DocumentIndex": 5,
+              "Title": "index.js",
+              "DocumentMoniker": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\index.js",
+              "RelativeDocumentMoniker": "src\\evil\\modules\\index.js",
+              "ToolTip": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\index.js",
+              "RelativeToolTip": "src\\evil\\modules\\index.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
-              "WhenOpened": "2026-06-12T18:55:01.053Z",
+              "WhenOpened": "2026-06-13T03:44:48.188Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "api.js",
+              "DocumentMoniker": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\api.js",
+              "RelativeDocumentMoniker": "src\\evil\\api.js",
+              "ToolTip": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\api.js",
+              "RelativeToolTip": "src\\evil\\api.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-06-13T03:44:35.473Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "statemachine.js",
+              "DocumentMoniker": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\statemachine.js",
+              "RelativeDocumentMoniker": "src\\evil\\modules\\statemachine.js",
+              "ToolTip": "C:\\Users\\thomasevans\\source\\repos\\tevans-3\\evil-cube\\src\\evil\\modules\\statemachine.js",
+              "RelativeToolTip": "src\\evil\\modules\\statemachine.js",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2026-06-13T02:13:52.285Z",
               "EditorCaption": ""
             }
           ]

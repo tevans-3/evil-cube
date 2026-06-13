@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 export var mousePosition = { x: 0, y: 0 };
 
 export var pickPosition = { x: 0, y: 0 }; 
@@ -17,3 +19,7 @@ export function _principalComponent(v) {
     }
     return maxAxis; 
 }
+
+export const mouseMoveRaycaster = new THREE.Raycaster();
+
+export const center = new THREE.Vector3(1 / 3, 1 / 3, 1 / 3);

@@ -1,8 +1,5 @@
 import * as THREE from 'three';
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
-import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
-import { Line2 } from 'three/addons/lines/Line2.js';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js'; 
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';  
 

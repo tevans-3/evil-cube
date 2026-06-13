@@ -31,7 +31,7 @@ export class PickHelper {
 
             // this is the clicked-on point, intersected by the camera's ray 
             this.point = intersectedObjects[0].point.clone(); 
-            console.log(this.point === intersectedObjects[0].point);
+
             // .transformDirection is the rotation
             // applying it here transforms the face normal to the world normal 
             // (lifts it out of the cubelet's local geometry into the world geomtry)
@@ -67,10 +67,11 @@ export class PickHelper {
             // perform some calculations later 
             state.clickedOnPoint = this.point.clone(); 
             state.normalAxis = axis; 
-            state.clickedOnFacePlane = plane; 
+            state.clickedOnFacePlane = plane;
             state.clickedOnFace = side; 
             state.worldNormal = worldNormal;
-
+            
+            return true; 
             this.pickedObject.material.forEach(material => material.emissive.setHex((time*8) %2 > 1 ? 0xFFFF00 : 0xFF0000));
         }
     }
