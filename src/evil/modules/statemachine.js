@@ -26,14 +26,13 @@ export class InteractionState {
 }
 
 export class UserInteractionStateMachine {
-    constructor(state) { 
+    constructor() { 
         this.hovering = true; 
         this.picked = false; 
         this.clicking = false; 
         this.dragging = false; 
         this.animating = false; 
         this.stopped = false; 
-        this.interactionState = state; 
     }
 
     reset() { 

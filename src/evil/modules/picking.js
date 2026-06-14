@@ -28,7 +28,7 @@ export class PickHelper {
             // of the cube's axes, of the face's in-plane axes, the face normal 
             // is the only out-of-plane axis (it's perpendicular)
             this.faceNormal = intersectedObjects[0].face.normal;
-
+            
             // this is the clicked-on point, intersected by the camera's ray 
             this.point = intersectedObjects[0].point.clone(); 
 

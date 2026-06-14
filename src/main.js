@@ -13,7 +13,7 @@ let canvas;
 const debug = true;
 
 var state = new evil.InteractionState();
-var stateMachine = new evil.UserInteractionStateMachine(state); 
+var stateMachine = new evil.UserInteractionStateMachine(); 
 
 function _getCanvasRelativePosition(event) {
   const rect = canvas.getBoundingClientRect();
@@ -86,10 +86,10 @@ function gestureMoveLogic(e, touched = false) {
     // need to cast a ray to intersect the clicked on face plane in order 
     // to compute the currentDragWorld, the drag in world space
     evil.mouseMoveRaycaster.layers.set(0);
-    evil.mouseMoveRaycaster.setFromCamera(evil.mousePosition, rubiks.camera);
+    evil.mouseMoveRaycaster.setFromCamera(evil.pickPosition, rubiks.camera);
     const intersectionPoint = new THREE.Vector3();
     const result = evil.mouseMoveRaycaster.ray.intersectPlane(state.clickedOnFacePlane, intersectionPoint);
-
+    
     if (!result) return;
     const currentDragWorld = intersectionPoint.clone().sub(state.clickedOnPoint);
 
@@ -168,10 +168,10 @@ function gestureMoveLogic(e, touched = false) {
             state.dragDistance = currentDragWorld.dot(state.dragDir);
             stateMachine.update("dragging");
         }
-    }
+    } 
     else if (stateMachine.dragging) {
-        if (intersectionPoint && result) {
-            state.dragDistance = currentDragWorld.dot(state.dragDir)
+        if (result) {
+            state.dragDistance = currentDragWorld.dot(state.dragDir); 
             let angle = _dragAngle(state.dragDistance);
             // rotate just the pivot
             // can't mutate the rubikPosition attributes on the cubelets
@@ -183,7 +183,7 @@ function gestureMoveLogic(e, touched = false) {
     }
 }
 
-function gestureDownLogic(e, touched = false) { 
+function gestureDownLogic(e, touched = false) {
     if (touched) _setPickPosition(e.touches[0]);
     else _setPickPosition(e); 
     let picked = pickHelper.pick(evil.pickPosition, rubiks.scene, rubiks.camera, rubiks.time, state);
@@ -194,7 +194,9 @@ function gestureUpLogic(e, touched = false) {
     stateMachine.update("hovering");
     if (touched) _setPickPosition(e.touches[0]);
     else _setPickPosition(e); 
-    if (!state.layerToRotate) return;
+    if (!state.layerToRotate) {
+        state.reset(); return;
+    }
     const turns = Math.round(_dragAngle(state.dragDistance) / (Math.PI / 2));
     const angle = turns * (Math.PI / 2);
     const q = new THREE.Quaternion().setFromAxisAngle(state.rotateAroundAxis, angle);
