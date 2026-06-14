@@ -10,7 +10,7 @@ import * as THREE from 'three';
 
 let canvas;  
 
-const debug = true;
+const debug = true; 
 
 var state = new evil.InteractionState();
 var stateMachine = new evil.UserInteractionStateMachine(); 
