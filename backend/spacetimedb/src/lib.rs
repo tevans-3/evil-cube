@@ -1,6 +1,6 @@
 use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp}; 
 
-let CORNER_CONFIGURATIONS_CT: u32 = 88179840; 
+pub const CORNER_CONFIGURATIONS_CT: u32 = 88179840; 
 
 #[table(accessor = cuber, public)]
 pub struct Cuber { 
@@ -12,14 +12,13 @@ pub struct Cuber {
 	best_solve_movect: u32, 
 	best_solve_singmaster: Vec<u32>,
 	distance_to_solve: u64,
+	corner_state: [u8; 4], // we only care about the corners
 }
 
-#[table(accessor = cube, public)] 
-pub struct Cube { 
-	#[primary_key] 
-	cuber_identity: Identity, 
-	corner_state: [u8; 4] = [0; 4]; // efficient backend representation -- we only care about corners 
-}
+#[reducer] 
+pub fn permute_corners_on_move(ctx: &ReducerContext, corners: [u8; 4]) -> Result<(), String> { 
+	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
+		ctx.db.cuber().identity().update(Cuber { c
 
 #[table(accessor = cornerpdb, public)] 
 pub struct CornerPatternDatabase { 
@@ -31,11 +30,11 @@ pub struct CornerPatternDatabase {
 #[reducer] 
 pub fn set_name(ctx: &ReducerContext, name: String) -> Result<(), String> { 
 	let name = validate_name(name)?; 
-	if let Some(user) = ctx.db.user().identity().find(ctx.sender()) {
-		ctx.db.user().identity().update(User { name: Some(name), ..user }); 
+	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) {
+		ctx.db.cuber().identity().update(Cuber { name: Some(name), ..cuber }); 
 		Ok(()) 
 	} else { 
-		Err("Cannot set name for unknown user".to_string())
+		Err("Cannot set name for unknown cuber".to_string())
 	}
 }
 
@@ -51,39 +50,43 @@ fn validate_name(name: String) -> Result<String, String> {
 
 #[reducer] 
 pub fn set_verified(ctx: &ReducerContext, status: bool) -> Result<(), String> { 
-	if let Some(user) = ctx.db.user().identity().find(ctx.sender()) { 
-		ctx.db.user().identity().update(User { status: Some(status), ..user }); 
+	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
+		ctx.db.cuber().identity().update(Cuber { status: Some(status), ..cuber }); 
 		Ok(())
 	} else { 
-		Err("Failed to set verified status for user".to_string())
+		Err("Failed to set verified status for cuber".to_string())
 	}
 }
 
 #[reducer] 
 pub fn set_human_status(ctx: &ReducerContext, is_human: bool) -> Result<(), String> { 
-	if let Some(user) = ctx.db.user().identity().find(ctx.sender()) { 
-		ctx.db.user().identity().update(User { is_human: Some(is_human), ..user }); 
+	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
+		ctx.db.cuber().identity().update(Cuber { is_human: Some(is_human), ..cuber }); 
 		Ok(())
  	} else { 
-		 Err("Failed to set human status for user".to_string())
+		 Err("Failed to set human status for cuber".to_string())
 	 }
 }
 
 #[reducer] 
 pub fn set_best_solve_movect(ctx: &ReducerContext, best_solve_movect: i32) -> Result<(), String> { 
-	if let Some(user) = ctx.db.user().identity().find(ctx.sender()) { 
-		ctx.db.user().identity().update(User { best_solve_movect: Some(best_solve_movect), ..user }); 
+	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
+		ctx.db.cuber().identity().update(Cuber { best_solve_movect: Some(best_solve_movect), ..cuber }); 
 		Ok(())
 	} else { 
-		Err("Failed to set best move count for user".to_string())
+		Err("Failed to set best move count for cuber".to_string())
 	}
 } 
 
 #[reducer] 
 pub fn set_best_solve_singmaster(ctx: &ReducerContext, best_solve_singmaster: String) -> Result<(), String> { 
 	let best_solve_singmaster = validate_singmaster(best_solve_singmaster)?; 
-	if let Some(user) = ctx.db.user().identity().find(ctx.sender()) { 
-		ctx.db.user().identity().update(User { 
+	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
+		ctx.db.cuber().identity().update(Cuber { best_solve_singmaster: Some(best_solve_singmaster), ..cuber }); 
+		Ok(())
+	} else { 
+		Err("Failed to set best solve string for cuber".to_string())
+	}
 }
 
 // this is only a partial validation: it does not validate semantic consistency 
@@ -105,11 +108,11 @@ fn validate_singmaster(move_string: String) -> Result<String, String> {
 
 #[reducer] 
 pub fn set_distance_to_solve(ctx: &ReducerContext, distance: u64) -> Result<(), String> { 
-	if let Some(user) = ctx.db.user().identity().find(ctx.sender()) { 
-		ctx.db.user().identity().update(User { distance: Some(distance), ..user }); 
+	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
+		ctx.db.cuber().identity().update(cuber { distance: Some(distance), ..cuber }); 
 		Ok(())
 	} else { 
-		Err("Failed to set distance to solve for user".to_string())
+		Err("Failed to set distance to solve for cuber".to_string())
 	}
 }
 
@@ -117,12 +120,8 @@ pub fn set_distance_to_solve(ctx: &ReducerContext, distance: u64) -> Result<(), 
 pub fn scramble_cube(ctx: &ReducerContext) -> Result<(), String> { 
 }
 
-fn extract_corner_state(
-
 fn verify_solve(ctx: &ReducerContext, solve_move_string: String) -> Result<(), String> { 
 }
-
-fn 
 
 
 // new cuber 
