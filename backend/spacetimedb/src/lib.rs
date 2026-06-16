@@ -53,7 +53,10 @@ pub fn client_connected(ctx: &ReducerContext, is_human: bool, name: String) -> R
 		best_score_movect: 0, 
 		best_score_singmaster: 0, 
 		distance_to_solve: 1e-6, 
-		state: 
+		state: Move { cp: [0, 1, 3, 7, 4, 5, 2, 6], co: [0, 0, 0, 0, 0, 0, 0, 0] }, 
+	}); 
+	Ok(())
+}
 
 
 // the client will scramble the cube and then write the new corner positions using this reducer 
