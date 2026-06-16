@@ -53,7 +53,7 @@ pub fn client_connected(ctx: &ReducerContext, is_human: bool, name: String) -> R
 		best_score_movect: 0, 
 		best_score_singmaster: 0, 
 		distance_to_solve: 1e-6, 
-		state: Move { cp: [0, 1, 3, 7, 4, 5, 2, 6], co: [0, 0, 0, 0, 0, 0, 0, 0] }, 
+		state: Move { cp: [0, 1, 2, 3, 4, 5, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] }, 
 	}); 
 	Ok(())
 }
@@ -65,6 +65,8 @@ pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> {
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
 		// TODO: generate PDB, wire up client, build leaderboard (it's just a subscriber) 
 		ctx.db.cuber().identity().update(Cuber { state: update_state(cuber.state, m), ..Cuber}); 
+		// lookup corner state in PDB and update distance to solve so that subscriber scrambler 
+		// is triggered if distance <= scramble_threshold 
 		Ok(())
 	} else { 
 		Err("Failed to apply move".to_string()) 
@@ -80,7 +82,6 @@ fn update_state(state: Move, new: Move) -> Move {
 	new_move
 }
 
-
 #[table(accessor = cornerpdb, public)] 
 pub struct CornerPatternDatabase { 
 	#[primary_key] 
@@ -91,8 +92,9 @@ pub struct CornerPatternDatabase {
 #[reducer(init)] 
 pub fn init_cpdb(ctx: &ReducerContext) -> Result<(), String> { 
 	let cpbd: [u32; CORNER_CONFIGURATIONS_CT] = [0; CORNER_CONFIGURATIONS_CT]; 
+	//bfs to fill cpbd
 	ctx.db.cornerpdb.insert(CornerPatternDatabase { 
-
+	}
 }
 
 #[reducer] 
@@ -137,23 +139,19 @@ pub fn set_human_status(ctx: &ReducerContext, is_human: bool) -> Result<(), Stri
 }
 
 #[reducer] 
-pub fn set_best_score_movect(ctx: &ReducerContext, best_score_movect: i32) -> Result<(), String> { 
-	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		ctx.db.cuber().identity().update(Cuber { best_score_movect: Some(best_score_movect), ..cuber }); 
-		Ok(())
-	} else { 
-		Err("Failed to set best move count for cuber".to_string())
-	}
-} 
-
-#[reducer] 
-pub fn set_best_score_singmaster(ctx: &ReducerContext, best_score_singmaster: String) -> Result<(), String> { 
-	let best_score_singmaster = validate_singmaster(best_score_singmaster)?; 
-	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		ctx.db.cuber().identity().update(Cuber { best_score_singmaster: Some(best_score_singmaster), ..cuber }); 
-		Ok(())
-	} else { 
-		Err("Failed to set best solve string for cuber".to_string())
+pub fn test_and_set_best_score(ctx: &ReducerContext, move_ct: i32, singmaster: String) -> Result<(), String> { 
+	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) {
+		let curr_score = cuber.best_score_movect?; 
+		if move_ct < curr_score { 
+			ctx.db.cuber().identity().update(Cuber { 
+				best_score_move_ct: move_ct, 
+				best_score_singmaster: singmaster, 
+			..cuber 
+			});
+			Ok(()) 
+		} else { 
+			Err("Failed to set best score".to_string()) 
+		}
 	}
 }
 
@@ -184,12 +182,9 @@ pub fn set_distance_to_solve(ctx: &ReducerContext, distance: u64) -> Result<(), 
 	}
 }
 
-fn verify_solve(ctx: &ReducerContext, solve_move_string: String) -> Result<(), String> { 
-}
 
 
-// new cuber 
-// new cube 
+// new cuber X
 // new pdb 
 // set name X
 // validate name X 
@@ -197,9 +192,5 @@ fn verify_solve(ctx: &ReducerContext, solve_move_string: String) -> Result<(), S
 // set human status X  
 // set best solve move count X
 // set singmaster move string X
-// set distance to solve 
-// verify solve 
+// set distance to solve X
 // lookup configuration in pattern database 
-// set distance to solve
-// procedure -- http request receive cube state from client 
-// procedure -- http request send cube state to client (scramble) 
