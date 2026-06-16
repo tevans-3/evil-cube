@@ -1,6 +1,34 @@
 use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp}; 
 
-pub const CORNER_CONFIGURATIONS_CT: u32 = 88179840; 
+pub const CORNER_CONFIGURATIONS_CT: u32 = 88179840;
+
+// cp[i] - the piece in slot i moves to this slot; co[i] - the twist (mod 3) it gains 
+pub struct Move { pub cp: [u8; 8], pub co: [u8; 8] } 
+
+// Corner ids: 0 LDB 1 LDF 2 LUB 3 LUF 4 RDB 5 RDF 6 RUB 7 RUF  (id = 4*right + 2*up + front) 
+//      right = 1 if corner is right, up = 1 if corner is up, front = 1 if corner is front 
+// Order: U U2 U' D D2 D' R R2 R' L L2 L' F F2 F' B B2 B'
+
+pub const MOVES: [Move; 18] = [
+    Move { cp: [0, 1, 3, 7, 4, 5, 2, 6], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // U
+    Move { cp: [0, 1, 7, 6, 4, 5, 3, 2], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // U2
+    Move { cp: [0, 1, 6, 2, 4, 5, 7, 3], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // U'
+    Move { cp: [1, 5, 2, 3, 0, 4, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // D
+    Move { cp: [5, 4, 2, 3, 1, 0, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // D2
+    Move { cp: [4, 0, 2, 3, 5, 1, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // D'
+    Move { cp: [0, 1, 2, 3, 6, 4, 7, 5], co: [0, 0, 0, 0, 1, 2, 2, 1] },  // R
+    Move { cp: [0, 1, 2, 3, 7, 6, 5, 4], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // R2
+    Move { cp: [0, 1, 2, 3, 5, 7, 4, 6], co: [0, 0, 0, 0, 1, 2, 2, 1] },  // R'
+    Move { cp: [2, 0, 3, 1, 4, 5, 6, 7], co: [2, 1, 1, 2, 0, 0, 0, 0] },  // L
+    Move { cp: [3, 2, 1, 0, 4, 5, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // L2
+    Move { cp: [1, 3, 0, 2, 4, 5, 6, 7], co: [2, 1, 1, 2, 0, 0, 0, 0] },  // L'
+    Move { cp: [0, 5, 2, 1, 4, 7, 6, 3], co: [0, 2, 0, 1, 0, 1, 0, 2] },  // F
+    Move { cp: [0, 7, 2, 5, 4, 3, 6, 1], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // F2
+    Move { cp: [0, 3, 2, 7, 4, 1, 6, 5], co: [0, 2, 0, 1, 0, 1, 0, 2] },  // F'
+    Move { cp: [4, 1, 0, 3, 6, 5, 2, 7], co: [1, 0, 2, 0, 2, 0, 1, 0] },  // B
+    Move { cp: [6, 1, 4, 3, 2, 5, 0, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // B2
+    Move { cp: [2, 1, 6, 3, 0, 5, 4, 7], co: [1, 0, 2, 0, 2, 0, 1, 0] },  // B'
+];
 
 #[table(accessor = cuber, public)]
 pub struct Cuber { 
@@ -12,13 +40,31 @@ pub struct Cuber {
 	best_solve_movect: u32, 
 	best_solve_singmaster: Vec<u32>,
 	distance_to_solve: u64,
-	corner_state: [u8; 4], // we only care about the corners
+	state: Move, // we only care about the corners
 }
 
+
+// the client will scramble the cube and then write the new corner positions using this reducer 
 #[reducer] 
-pub fn permute_corners_on_move(ctx: &ReducerContext, corners: [u8; 4]) -> Result<(), String> { 
+pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> { 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		ctx.db.cuber().identity().update(Cuber { c
+		// TODO: generate PDB, wire up client, build leaderboard (it's just a subscriber) 
+		ctx.db.cuber().identity().update(Cuber { state: update_state(cuber.state, m), ..Cuber}); 
+		Ok(())
+	} else { 
+		Err("Failed to apply move".to_string()) 
+	}
+}
+
+fn update_state(state: Move, new: Move) -> Move {
+	new_move: Move = Move { cp: [0,0,0,0,0,0,0,0], co: [0,0,0,0,0,0,0,0] }; 
+	for i in range(0..8} { 
+		new_move[new.cp[i]] = state.cp[i]; 
+		new_move[new.co[i]] = (state.co[i] + new.co[i]) % 3;  
+	}
+	new_move
+}
+
 
 #[table(accessor = cornerpdb, public)] 
 pub struct CornerPatternDatabase { 
@@ -116,10 +162,6 @@ pub fn set_distance_to_solve(ctx: &ReducerContext, distance: u64) -> Result<(), 
 	}
 }
 
-#[reducer] 
-pub fn scramble_cube(ctx: &ReducerContext) -> Result<(), String> { 
-}
-
 fn verify_solve(ctx: &ReducerContext, solve_move_string: String) -> Result<(), String> { 
 }
 
@@ -139,4 +181,3 @@ fn verify_solve(ctx: &ReducerContext, solve_move_string: String) -> Result<(), S
 // set distance to solve
 // procedure -- http request receive cube state from client 
 // procedure -- http request send cube state to client (scramble) 
-// procedure -- http request send leaderboard delta to client (top 25 best scores in Cuber) 
