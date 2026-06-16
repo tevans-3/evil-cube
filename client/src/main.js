@@ -1,12 +1,14 @@
 import * as evil from './evil/api.js';
 import * as THREE from 'three';
 
-// CITATIONS 
+// CITATIONS
 //
-// 1. THREE.js documentation 
-// 2. https://github.com/joews/rubik-js/blob/master/rubik.rubik-js 
+// 1. THREE.js documentation
+// 2. https://github.com/joews/rubik-js/blob/master/rubik.rubik-js
 // 3. https://cs.stanford.edu/people/karpathy/reinforcejs/
 // 4. Asked Claude Opus 4.8 (browser chat) some debugging and conceptual questions (OOP refactor, rotation math and APIs)
+// 5. https://stackoverflow.com/questions/500221/how-would-you-represent-a-rubiks-cube-in-code\
+// 6. SpacetimeDB documentation
 
 let canvas;  
 
@@ -260,3 +262,4 @@ window.addEventListener('touchend', (e) => {
     e.preventDefault();
     gestureUpLogic(e, touched = true);
 }); 
+console.log(cube);
