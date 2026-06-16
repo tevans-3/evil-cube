@@ -1,6 +1,5 @@
 import * as evil from './evil/api.js';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // CITATIONS
 //
@@ -36,18 +35,6 @@ function _clearPickPosition() {
   evil.pickPosition.x = -100000;
   evil.pickPosition.y = -100000;
 }
-
-function _setMousePosition(event) { 
-    const pos = _getCanvasRelativePosition(event);
-    evil.mousePosition.x = (pos.x / canvas.width) * 2 - 1;
-    evil.mousePosition.y = (pos.y / canvas.height) * -2 + 1;
-}
-
-function _clearMousePosition() { 
-    evil.mousePosition.x = -100000;
-    evil.mousePosition.y = -100000;
-}
-
 function _dragAngle(d) { 
     let k = (Math.PI / 2) * 3; 
     return d * k; 
@@ -68,11 +55,6 @@ _clearPickPosition();
 
 const pickHelper = new evil.PickHelper();
 
-
-const controls = new OrbitControls(rubiks.camera, rubiks.renderer.domElement);
-controls.enableRotate = true;
-controls.enableZoom = false;
-controls.target.set(0, 0, 1);
 function animate() {
     rubiks.time = performance.now() * 0.001; 
     rubiks.renderer.render(rubiks.scene, rubiks.camera);
@@ -198,14 +180,15 @@ function gestureDownLogic(e, touched = false) {
     let picked = pickHelper.pick(evil.pickPosition, rubiks.scene, rubiks.camera, rubiks.time, state);
     if (picked) {
         stateMachine.update("picked");
-        controls.enabled = false; }
+        rubiks.controls.enabled = false;
+    }
 }
 
 function gestureUpLogic(e, touched = false) {  
     stateMachine.update("hovering");
     if (touched) _setPickPosition(e.touches[0]);
     else _setPickPosition(e); 
-    controls.enabled = true;
+    rubiks.controls.enabled = true;
     if (!state.layerToRotate) {
         state.reset(); return;
     }
@@ -230,8 +213,6 @@ function gestureUpLogic(e, touched = false) {
     rubiks.scene.remove(pivot);
     _clearPickPosition(e);
     state.reset();
-
-    console.log(controls.enabled);
 }
 
 /*  WE ARE EVENT LISTENERS!
@@ -274,4 +255,3 @@ window.addEventListener('touchend', (e) => {
     e.preventDefault();
     gestureUpLogic(e, touched = true);
 }); 
-console.log(cube);
