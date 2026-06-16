@@ -1,5 +1,6 @@
 import * as evil from './evil/api.js';
 import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 // CITATIONS
 //
@@ -67,8 +68,13 @@ _clearPickPosition();
 
 const pickHelper = new evil.PickHelper();
 
+
+const controls = new OrbitControls(rubiks.camera, rubiks.renderer.domElement);
+controls.enableRotate = true;
+controls.enableZoom = false;
+controls.target.set(0, 0, 1);
 function animate() {
-    rubiks.time *= 0.001;
+    rubiks.time = performance.now() * 0.001; 
     rubiks.renderer.render(rubiks.scene, rubiks.camera);
 }
 
@@ -76,6 +82,7 @@ if (debug) {
     // X == red, Y == green, Z == blue
     const axesHelper = new THREE.AxesHelper(5); rubiks.scene.add(axesHelper);
 }
+
 
 rubiks.renderer.setAnimationLoop(animate); 
 
@@ -189,13 +196,16 @@ function gestureDownLogic(e, touched = false) {
     if (touched) _setPickPosition(e.touches[0]);
     else _setPickPosition(e); 
     let picked = pickHelper.pick(evil.pickPosition, rubiks.scene, rubiks.camera, rubiks.time, state);
-    if (picked) { stateMachine.update("picked"); }
+    if (picked) {
+        stateMachine.update("picked");
+        controls.enabled = false; }
 }
 
 function gestureUpLogic(e, touched = false) {  
     stateMachine.update("hovering");
     if (touched) _setPickPosition(e.touches[0]);
     else _setPickPosition(e); 
+    controls.enabled = true;
     if (!state.layerToRotate) {
         state.reset(); return;
     }
@@ -220,6 +230,8 @@ function gestureUpLogic(e, touched = false) {
     rubiks.scene.remove(pivot);
     _clearPickPosition(e);
     state.reset();
+
+    console.log(controls.enabled);
 }
 
 /*  WE ARE EVENT LISTENERS!

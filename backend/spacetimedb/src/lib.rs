@@ -37,11 +37,23 @@ pub struct Cuber {
 	verified: bool, // verified == consenting human participant solving cube synchronously under supervision, or agent
 	is_human: bool, // this is not a verdict on the cuber's humanity; it just indicates if the solver is an agent
 	name: Option<string>, // I recommend Gregor Samsa, but they can pick anything they like 
-	best_solve_movect: u32, 
-	best_solve_singmaster: Vec<u32>,
+	best_score_movect: u32, 
+	best_score_singmaster: Vec<u32>,
 	distance_to_solve: u64,
 	state: Move, // we only care about the corners
 }
+
+#[reducer(client_connected)] 
+pub fn client_connected(ctx: &ReducerContext, is_human: bool, name: String) -> Result<(), String> { 
+	ctx.db.cuber().insert(Cuber { 
+		identity: ctx.sender, 
+		verified: false, 
+		is_human: is_human, 
+		name: name, 
+		best_score_movect: 0, 
+		best_score_singmaster: 0, 
+		distance_to_solve: 1e-6, 
+		state: 
 
 
 // the client will scramble the cube and then write the new corner positions using this reducer 
@@ -70,7 +82,14 @@ fn update_state(state: Move, new: Move) -> Move {
 pub struct CornerPatternDatabase { 
 	#[primary_key] 
 	pdb_identity: Identity, 
-	pdb: [u32; CORNER_CONFIGURATIONS_CT] = [0; CORNER_CONFIGURATIONS_CT]; 
+	pdb: [u32; CORNER_CONFIGURATIONS_CT],
+}
+
+#[reducer(init)] 
+pub fn init_cpdb(ctx: &ReducerContext) -> Result<(), String> { 
+	let cpbd: [u32; CORNER_CONFIGURATIONS_CT] = [0; CORNER_CONFIGURATIONS_CT]; 
+	ctx.db.cornerpdb.insert(CornerPatternDatabase { 
+
 }
 
 #[reducer] 
@@ -115,9 +134,9 @@ pub fn set_human_status(ctx: &ReducerContext, is_human: bool) -> Result<(), Stri
 }
 
 #[reducer] 
-pub fn set_best_solve_movect(ctx: &ReducerContext, best_solve_movect: i32) -> Result<(), String> { 
+pub fn set_best_score_movect(ctx: &ReducerContext, best_score_movect: i32) -> Result<(), String> { 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		ctx.db.cuber().identity().update(Cuber { best_solve_movect: Some(best_solve_movect), ..cuber }); 
+		ctx.db.cuber().identity().update(Cuber { best_score_movect: Some(best_score_movect), ..cuber }); 
 		Ok(())
 	} else { 
 		Err("Failed to set best move count for cuber".to_string())
@@ -125,10 +144,10 @@ pub fn set_best_solve_movect(ctx: &ReducerContext, best_solve_movect: i32) -> Re
 } 
 
 #[reducer] 
-pub fn set_best_solve_singmaster(ctx: &ReducerContext, best_solve_singmaster: String) -> Result<(), String> { 
-	let best_solve_singmaster = validate_singmaster(best_solve_singmaster)?; 
+pub fn set_best_score_singmaster(ctx: &ReducerContext, best_score_singmaster: String) -> Result<(), String> { 
+	let best_score_singmaster = validate_singmaster(best_score_singmaster)?; 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		ctx.db.cuber().identity().update(Cuber { best_solve_singmaster: Some(best_solve_singmaster), ..cuber }); 
+		ctx.db.cuber().identity().update(Cuber { best_score_singmaster: Some(best_score_singmaster), ..cuber }); 
 		Ok(())
 	} else { 
 		Err("Failed to set best solve string for cuber".to_string())
