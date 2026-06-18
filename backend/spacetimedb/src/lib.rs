@@ -1,4 +1,5 @@
-use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp}; 
+use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp, 
+					view, ViewContext, AnonymousViewContext, SpacetimeType}; 
 use std::collections::VecDeque; 
 
 pub const CORNER_CONFIGURATIONS_CT: u32 = 88179840;
@@ -50,7 +51,7 @@ pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> {
 		identity: ctx.sender, 
 		verified: false, 
 		is_human: true, 
-		name: name, 
+		name: String::new(), 
 		best_score_movect: 0, 
 		best_score_singmaster: String::new(), 
 		distance_to_solve: 88179840, 
@@ -63,7 +64,7 @@ pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> {
 #[reducer] 
 pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> { 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		// TODO: generate PDB, wire up client, build leaderboard (it's just a subscriber) 
+		// TODO: generate PDB, wire up client, build leaderboard (it's just a subscriber, subscribed to an AnonymousViewContext) 
 		ctx.db.cuber().identity().update(Cuber { state: update_state(cuber.state, m), ..cuber}); 
 		// lookup corner state in PDB and update distance to solve so that subscriber scrambler 
 		// is triggered if distance <= scramble_threshold 
@@ -96,16 +97,16 @@ impl BreadthFirstCornerSearcher {
 		}
 	}
 
-	pub fn find_goal(&mut self, identity_move: Move, pdb: &mut db_storage) { 
+	pub fn find_goal(&mut self, identity_move: Move, corner: &mut db_storage) { 
 		self.explored_moves.push_back(identity_move); 
 		while self.explored_moves.is_empty() == false {
 			let curr = self.explored_moves.pop_front(); 
 			for mv in MOVES { 
 				let new: Move = update_state(curr, mv); 
-				let stored_movect = pdb.get_at_index(new)?; 
+				let stored_movect = pdb.get_at_index(pdb.get_index(new))?; 
 				let move_ct = pdb.get_num_moves(new)?; 
 				if stored_movect != false and stored_movect < move_ct { 
-					pdb.set_at_index(self.visited++); 
+					pdb.set_at_index(move_ct); 
 					self.explored_moves.push_back(new); 
 				}
 			}
@@ -113,18 +114,29 @@ impl BreadthFirstCornerSearcher {
 	}
 }
 
-pub struct db_storage { store: [u32; CORNER_CONFIGURATIONS_CT], } 
+pub struct DbStorage { 
+	store: [u32; CORNER_CONFIGURATIONS_CT], 
+} 
+
+impl DbStorage { 
+	pub fn get_index(&self, new: Move) -> u64 { 
+	}
+
+	pub fn get_at_index(&self, idx: u64) -> u64 { 
+	}
+}
+
 
 #[table(accessor = cornerpdb, public)] 
 pub struct CornerPatternDatabase { 
 	#[primary_key] 
 	pdb_identity: Identity, 
-	pdb: db_storage,
+	pdb: Box<DbStorage>,
 }
 
 #[reducer(init)] 
 pub fn init_cpdb(ctx: &ReducerContext) { 
-	let cpbd: db_storage = [0; CORNER_CONFIGURATIONS_CT]; 
+	let cpbd: DbStorage = Box::new( DbStorage { [0; CORNER_CONFIGURATIONS_CT] } ); 
 	let BFS = BreadthFirstCornerSearcher::new(); 
 	BFS.find_goal(Move { cp: [0,1,2,3,4,5,6,7], co: [0,0,0,0,0,0,0,0] }, &mut cpbd); 
 	ctx.db.cornerpdb.insert(CornerPatternDatabase { 
@@ -195,12 +207,12 @@ pub fn test_and_set_best_score(ctx: &ReducerContext, move_ct: i32, singmaster: S
 fn validate_singmaster(move_string: String) -> Result<String, String> { 
 	if move_string.is_empty() { 
 		Err("Move strings must not be empty".to_string())
-	} else if move_string.chars().filter(|ch| { 
+	} else if move_string.chars().filter(|ch| {
 			ch != 'T' && ch != 'B' &&
 			ch != 'R' && ch != 'L' && 
 			ch != 'F' && ch != 'P' && 
 			ch != '+' && ch != '-' && 
-			ch != '2'}).is_empty() { 
+			ch != '2'}).len() > 0 { 
 				Err("Move strings can only contain: T,B,R,L,F,P,+,-,2".to_string())
 	} else { 
 		Ok(move_string) 
