@@ -114,6 +114,7 @@ impl BreadthFirstCornerSearcher {
 	}
 }
 
+#[derive(SpacetimeType)]
 pub struct DbStorage { 
 	store: [u32; CORNER_CONFIGURATIONS_CT], 
 } 
