@@ -1,4 +1,5 @@
 use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp}; 
+use std::collections::VecDeque; 
 
 pub const CORNER_CONFIGURATIONS_CT: u32 = 88179840;
 
@@ -58,7 +59,6 @@ pub fn client_connected(ctx: &ReducerContext, is_human: bool, name: String) -> R
 	Ok(())
 }
 
-
 // the client will scramble the cube and then write the new corner positions using this reducer 
 #[reducer] 
 pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> { 
@@ -82,19 +82,54 @@ fn update_state(state: Move, new: Move) -> Move {
 	new_move
 }
 
+pub struct BreadthFirstCornerSearcher(identity_move: Move) { 
+	move_store: [Move; 18],
+	visited: u32,
+	explored_moves: VecDeque<u32>,
+}
+
+impl BreadthFirstCornerSearcher { 
+	pub fn new(&self) -> BreadthFirstCornerSearcher { 
+		BreadthFirstCornerSearcher {
+			visited: 0,
+			explored_moves: VecDeque::new(),
+		}
+	}
+
+	pub fn find_goal(&mut self, identity_move: Move, pdb: &mut db_storage) { 
+		self.explored_moves.push_back(identity_move); 
+		while self.explored_moves.is_empty() == false {
+			let curr = self.explored_moves.pop_front(); 
+			for mv in MOVES { 
+				let new: Move = update_state(curr, mv); 
+				let stored_movect = pdb.get_at_index(new); 
+				self.visited ++; 
+				if stored_movect != false and stored_movect < move_ct { 
+					pdb.set_at_index(self.visited++); 
+					self.explored_moves.push_back(new); 
+				}
+			}
+		}
+	}
+}
+
+pub struct db_storage { store: [u32; CORNER_CONFIGURATIONS_CT], } 
+
 #[table(accessor = cornerpdb, public)] 
 pub struct CornerPatternDatabase { 
 	#[primary_key] 
 	pdb_identity: Identity, 
-	pdb: [u32; CORNER_CONFIGURATIONS_CT],
+	pdb: db_storage,
 }
 
 #[reducer(init)] 
-pub fn init_cpdb(ctx: &ReducerContext) -> Result<(), String> { 
-	let cpbd: [u32; CORNER_CONFIGURATIONS_CT] = [0; CORNER_CONFIGURATIONS_CT]; 
-	//bfs to fill cpbd
+pub fn init_cpdb(ctx: &ReducerContext) { 
+	let cpbd: db_storage = [0; CORNER_CONFIGURATIONS_CT]; 
+	let BFS = BreadthFirstCornerSearcher::new(); 
+	BFS.find_goal(Move { cp: [1,2,3,4,5,6,7,8], co: [0,0,0,0,0,0,0,0] }, &mut cpbd); 
 	ctx.db.cornerpdb.insert(CornerPatternDatabase { 
-	}
+		pbd: cpdb, 
+	});
 }
 
 #[reducer] 
@@ -140,14 +175,14 @@ pub fn set_human_status(ctx: &ReducerContext, is_human: bool) -> Result<(), Stri
 
 #[reducer] 
 pub fn test_and_set_best_score(ctx: &ReducerContext, move_ct: i32, singmaster: String) -> Result<(), String> { 
+	let singmaster = validate_singmaster(singmaster)?;
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) {
 		let curr_score = cuber.best_score_movect?; 
 		if move_ct < curr_score { 
 			ctx.db.cuber().identity().update(Cuber { 
 				best_score_move_ct: move_ct, 
 				best_score_singmaster: singmaster, 
-			..cuber 
-			});
+			..cuber });
 			Ok(()) 
 		} else { 
 			Err("Failed to set best score".to_string()) 
@@ -194,3 +229,5 @@ pub fn set_distance_to_solve(ctx: &ReducerContext, distance: u64) -> Result<(), 
 // set singmaster move string X
 // set distance to solve X
 // lookup configuration in pattern database 
+
+struct BFSCubeSearcher(Goal
