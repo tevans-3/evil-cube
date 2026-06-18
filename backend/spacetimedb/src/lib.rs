@@ -39,21 +39,21 @@ pub struct Cuber {
 	is_human: bool, // this is not a verdict on the cuber's humanity; it just indicates if the solver is an agent
 	name: Option<string>, // I recommend Gregor Samsa, but they can pick anything they like 
 	best_score_movect: u32, 
-	best_score_singmaster: Vec<u32>,
+	best_score_singmaster: String,
 	distance_to_solve: u64,
 	state: Move, // we only care about the corners
 }
 
 #[reducer(client_connected)] 
-pub fn client_connected(ctx: &ReducerContext, is_human: bool, name: String) -> Result<(), String> { 
+pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> { 
 	ctx.db.cuber().insert(Cuber { 
 		identity: ctx.sender, 
 		verified: false, 
-		is_human: is_human, 
+		is_human: true, 
 		name: name, 
 		best_score_movect: 0, 
-		best_score_singmaster: 0, 
-		distance_to_solve: 1e-6, 
+		best_score_singmaster: String::new(), 
+		distance_to_solve: 88179840, 
 		state: Move { cp: [0, 1, 2, 3, 4, 5, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] }, 
 	}); 
 	Ok(())
@@ -64,7 +64,7 @@ pub fn client_connected(ctx: &ReducerContext, is_human: bool, name: String) -> R
 pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> { 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
 		// TODO: generate PDB, wire up client, build leaderboard (it's just a subscriber) 
-		ctx.db.cuber().identity().update(Cuber { state: update_state(cuber.state, m), ..Cuber}); 
+		ctx.db.cuber().identity().update(Cuber { state: update_state(cuber.state, m), ..cuber}); 
 		// lookup corner state in PDB and update distance to solve so that subscriber scrambler 
 		// is triggered if distance <= scramble_threshold 
 		Ok(())
@@ -76,8 +76,8 @@ pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> {
 fn update_state(state: Move, new: Move) -> Move {
 	new_move: Move = Move { cp: [0,0,0,0,0,0,0,0], co: [0,0,0,0,0,0,0,0] }; 
 	for i in range(0..8} { 
-		new_move[new.cp[i]] = state.cp[i]; 
-		new_move[new.co[i]] = (state.co[i] + new.co[i]) % 3;  
+		new_move.cp[new.cp[i]] = state.cp[i]; 
+		new_move.co[new.cp[i]] = (state.co[i] + new.co[i]) % 3;  
 	}
 	new_move
 }
@@ -85,14 +85,14 @@ fn update_state(state: Move, new: Move) -> Move {
 pub struct BreadthFirstCornerSearcher(identity_move: Move) { 
 	move_store: [Move; 18],
 	visited: u32,
-	explored_moves: VecDeque<u32>,
+	explored_moves: VecDeque<Move>,
 }
 
 impl BreadthFirstCornerSearcher { 
 	pub fn new(&self) -> BreadthFirstCornerSearcher { 
 		BreadthFirstCornerSearcher {
 			visited: 0,
-			explored_moves: VecDeque::new(),
+			explored_moves: VecDeque::<Move>::new(),
 		}
 	}
 
@@ -102,8 +102,8 @@ impl BreadthFirstCornerSearcher {
 			let curr = self.explored_moves.pop_front(); 
 			for mv in MOVES { 
 				let new: Move = update_state(curr, mv); 
-				let stored_movect = pdb.get_at_index(new); 
-				self.visited ++; 
+				let stored_movect = pdb.get_at_index(new)?; 
+				let move_ct = pdb.get_num_moves(new)?; 
 				if stored_movect != false and stored_movect < move_ct { 
 					pdb.set_at_index(self.visited++); 
 					self.explored_moves.push_back(new); 
@@ -126,7 +126,7 @@ pub struct CornerPatternDatabase {
 pub fn init_cpdb(ctx: &ReducerContext) { 
 	let cpbd: db_storage = [0; CORNER_CONFIGURATIONS_CT]; 
 	let BFS = BreadthFirstCornerSearcher::new(); 
-	BFS.find_goal(Move { cp: [1,2,3,4,5,6,7,8], co: [0,0,0,0,0,0,0,0] }, &mut cpbd); 
+	BFS.find_goal(Move { cp: [0,1,2,3,4,5,6,7], co: [0,0,0,0,0,0,0,0] }, &mut cpbd); 
 	ctx.db.cornerpdb.insert(CornerPatternDatabase { 
 		pbd: cpdb, 
 	});
@@ -136,7 +136,7 @@ pub fn init_cpdb(ctx: &ReducerContext) {
 pub fn set_name(ctx: &ReducerContext, name: String) -> Result<(), String> { 
 	let name = validate_name(name)?; 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) {
-		ctx.db.cuber().identity().update(Cuber { name: Some(name), ..cuber }); 
+		ctx.db.cuber().identity().update(Cuber { name: name, ..cuber }); 
 		Ok(()) 
 	} else { 
 		Err("Cannot set name for unknown cuber".to_string())
@@ -156,7 +156,7 @@ fn validate_name(name: String) -> Result<String, String> {
 #[reducer] 
 pub fn set_verified(ctx: &ReducerContext, status: bool) -> Result<(), String> { 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		ctx.db.cuber().identity().update(Cuber { status: Some(status), ..cuber }); 
+		ctx.db.cuber().identity().update(Cuber { verified: status, ..cuber }); 
 		Ok(())
 	} else { 
 		Err("Failed to set verified status for cuber".to_string())
@@ -166,7 +166,7 @@ pub fn set_verified(ctx: &ReducerContext, status: bool) -> Result<(), String> {
 #[reducer] 
 pub fn set_human_status(ctx: &ReducerContext, is_human: bool) -> Result<(), String> { 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		ctx.db.cuber().identity().update(Cuber { is_human: Some(is_human), ..cuber }); 
+		ctx.db.cuber().identity().update(Cuber { is_human: is_human, ..cuber }); 
 		Ok(())
  	} else { 
 		 Err("Failed to set human status for cuber".to_string())
@@ -177,10 +177,10 @@ pub fn set_human_status(ctx: &ReducerContext, is_human: bool) -> Result<(), Stri
 pub fn test_and_set_best_score(ctx: &ReducerContext, move_ct: i32, singmaster: String) -> Result<(), String> { 
 	let singmaster = validate_singmaster(singmaster)?;
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) {
-		let curr_score = cuber.best_score_movect?; 
-		if move_ct < curr_score { 
+		let curr_score = cuber.best_score_movect; 
+		if curr_score < move_ct { 
 			ctx.db.cuber().identity().update(Cuber { 
-				best_score_move_ct: move_ct, 
+				best_score_movect: move_ct, 
 				best_score_singmaster: singmaster, 
 			..cuber });
 			Ok(()) 
@@ -195,12 +195,12 @@ pub fn test_and_set_best_score(ctx: &ReducerContext, move_ct: i32, singmaster: S
 fn validate_singmaster(move_string: String) -> Result<String, String> { 
 	if move_string.is_empty() { 
 		Err("Move strings must not be empty".to_string())
-	} else if move_string.chars().filter(ch => 
+	} else if move_string.chars().filter(|ch| { 
 			ch != 'T' && ch != 'B' &&
 			ch != 'R' && ch != 'L' && 
 			ch != 'F' && ch != 'P' && 
 			ch != '+' && ch != '-' && 
-			ch != '2').is_empty() { 
+			ch != '2'}).is_empty() { 
 				Err("Move strings can only contain: T,B,R,L,F,P,+,-,2".to_string())
 	} else { 
 		Ok(move_string) 
@@ -210,24 +210,9 @@ fn validate_singmaster(move_string: String) -> Result<String, String> {
 #[reducer] 
 pub fn set_distance_to_solve(ctx: &ReducerContext, distance: u64) -> Result<(), String> { 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		ctx.db.cuber().identity().update(cuber { distance: Some(distance), ..cuber }); 
+		ctx.db.cuber().identity().update(cuber { distance_to_solve: distance, ..cuber }); 
 		Ok(())
 	} else { 
 		Err("Failed to set distance to solve for cuber".to_string())
 	}
 }
-
-
-
-// new cuber X
-// new pdb 
-// set name X
-// validate name X 
-// set verified status X
-// set human status X  
-// set best solve move count X
-// set singmaster move string X
-// set distance to solve X
-// lookup configuration in pattern database 
-
-struct BFSCubeSearcher(Goal
