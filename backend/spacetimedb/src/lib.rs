@@ -3,6 +3,8 @@ use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp,
 use std::collections::VecDeque; 
 use bit_set::BitSet; 
 
+pub const UNVISITED: u32 = u32::MAX; 
+
 pub const CORNER_CONFIGURATIONS_CT: u32 = 88179840;
 
 // cp[i] - the piece in slot i moves to this slot; co[i] - the twist (mod 3) it gains 
@@ -75,11 +77,11 @@ pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> {
 	}
 }
 
-fn update_state(state: Move, new: Move) -> Move {
+fn update_state(state: &Move, new: Move) -> Move {
 	new_move: Move = Move { cp: [0,0,0,0,0,0,0,0], co: [0,0,0,0,0,0,0,0] }; 
 	for i in range(0..8} { 
-		new_move.cp[new.cp[i]] = state.cp[i]; 
-		new_move.co[new.cp[i]] = (state.co[i] + new.co[i]) % 3;  
+		new_move.cp[new.cp[i]] = (*state).cp[i]; 
+		new_move.co[new.cp[i]] = (*state.co[i] + new.co[i]) % 3;  
 	}
 	new_move
 }
@@ -103,11 +105,11 @@ impl BreadthFirstCornerSearcher {
 		while self.explored_moves.is_empty() == false {
 			let curr = self.explored_moves.pop_front(); 
 			for mv in MOVES { 
-				let new: Move = update_state(curr, mv); 
-				let stored_movect = pdb.get_at_index(pdb.get_index(new))?; 
-				let move_ct = pdb.get_num_moves(new)?; 
-				if stored_movect != false and stored_movect < move_ct { 
-					pdb.set_at_index(move_ct); 
+				let new: Move = update_state(&curr, mv); 
+				let new_slot_in_pdb = pdb.get_at_index(pdb.get_index(new)); 
+				let current_dist = pb.get_at_index(pdb.get_index(curr)); 
+				if new_slot_in_pdb == UNVISITED { 
+					pdb.set_at_index(new_slot_in_pdb, current_dist + 1); 
 					self.explored_moves.push_back(new); 
 				}
 			}
@@ -121,6 +123,12 @@ pub struct DbStorage {
 } 
 
 impl DbStorage { 
+	pub fn new(&self) -> DbStorage { 
+		DbStorage { 
+			store = [UNVISITED; CORNER_CONFIGURATIONS_CT],
+		}
+	}
+
 	fn rank(p: &[u8; 8]) -> u32 { 
 		const FACT: [u32; 8] = [5040, 720, 120, 24, 6, 2, 1, 1]; 
 		let mut rank = 0u32; 
@@ -152,6 +160,10 @@ impl DbStorage {
 	pub fn get_at_index(&self, idx: u32) -> u32 { 
 		self.store[idx]
 	}
+
+	pub fn set_at_index(&mut self, idx: u32, val: u32) { 
+		self.store[idx] = val; 
+	}
 }
 
 
@@ -164,9 +176,9 @@ pub struct CornerPatternDatabase {
 
 #[reducer(init)] 
 pub fn init_cpdb(ctx: &ReducerContext) { 
-	let cpbd: DbStorage = Box::new( DbStorage { [0; CORNER_CONFIGURATIONS_CT] } ); 
+	let cpbd: DbStorage = Box::new(DbStorage::new()); 
 	let BFS = BreadthFirstCornerSearcher::new(); 
-	BFS.find_goal(Move { cp: [0,1,2,3,4,5,6,7], co: [0,0,0,0,0,0,0,0] }, &mut cpbd); 
+	BFS.perform_bfs(Move { cp: [0,1,2,3,4,5,6,7], co: [0,0,0,0,0,0,0,0] }, &mut cpbd); 
 	ctx.db.cornerpdb.insert(CornerPatternDatabase { 
 		pbd: cpdb, 
 	});
