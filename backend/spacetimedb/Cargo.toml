@@ -11,3 +11,4 @@ crate-type = ["cdylib"]
 [dependencies]
 spacetimedb = { version = "2.5.*" }
 log = "0.4"
+bit-set = "0.10.0"

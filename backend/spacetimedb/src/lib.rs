@@ -1,6 +1,7 @@
 use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp, 
 					view, ViewContext, AnonymousViewContext, SpacetimeType}; 
 use std::collections::VecDeque; 
+use bit_set::BitSet; 
 
 pub const CORNER_CONFIGURATIONS_CT: u32 = 88179840;
 
@@ -97,7 +98,7 @@ impl BreadthFirstCornerSearcher {
 		}
 	}
 
-	pub fn find_goal(&mut self, identity_move: Move, corner: &mut db_storage) { 
+	pub fn perform_bfs(&mut self, identity_move: Move, corner: &mut db_storage) { 
 		self.explored_moves.push_back(identity_move); 
 		while self.explored_moves.is_empty() == false {
 			let curr = self.explored_moves.pop_front(); 
@@ -120,10 +121,36 @@ pub struct DbStorage {
 } 
 
 impl DbStorage { 
-	pub fn get_index(&self, new: Move) -> u64 { 
+	fn rank(p: &[u8; 8]) -> u32 { 
+		const FACT: [u32; 8] = [5040, 720, 120, 24, 6, 2, 1, 1]; 
+		let mut rank = 0u32; 
+		for i in 0..8 { 
+			let mut choice_i = 0u32; 
+			for j in (i+1)..8 { 
+				if p[j] < p[i] { 
+					choice_i += 1; 
+				}
+			}
+			rank += choice_i * FACT[i]; 
+		}
+		rank
 	}
 
-	pub fn get_at_index(&self, idx: u64) -> u64 { 
+	pub fn get_index(&self, new: Move) -> u64 { 
+		let mut s: u32 = 
+				new.co[1] as u32 * 729 + 
+				new.co[2] as u32 * 243 + 
+				new.co[3] as u32 *  81 + 
+				new.co[4] as u32 *  27 +
+				new.co[5] as u32 *   9 + 
+				new.co[6] as u32 *   3 + 
+				new.co[7]; 
+
+		return self.rank(p) * 2187 + orientationNum;
+	}
+
+	pub fn get_at_index(&self, idx: u32) -> u32 { 
+		self.store[idx]
 	}
 }
 
