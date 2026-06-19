@@ -81,7 +81,7 @@ fn update_state(state: &Move, new: Move) -> Move {
 	new_move: Move = Move { cp: [0,0,0,0,0,0,0,0], co: [0,0,0,0,0,0,0,0] }; 
 	for i in range(0..8} { 
 		new_move.cp[new.cp[i]] = (*state).cp[i]; 
-		new_move.co[new.cp[i]] = (*state.co[i] + new.co[i]) % 3;  
+		new_move.co[new.cp[i]] = ((*state).co[i] + new.co[i]) % 3;  
 	}
 	new_move
 }
