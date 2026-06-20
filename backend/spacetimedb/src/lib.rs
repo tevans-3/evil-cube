@@ -1,14 +1,24 @@
 use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp, 
 					view, ViewContext, AnonymousViewContext, SpacetimeType}; 
 use std::collections::VecDeque; 
-use bit_set::BitSet; 
 
-pub const UNVISITED: u32 = u32::MAX; 
+pub const UNVISITED: u8 = u8::MAX; 
 
 pub const CORNER_CONFIGURATIONS_CT: u32 = 88179840;
 
 // cp[i] - the piece in slot i moves to this slot; co[i] - the twist (mod 3) it gains 
+#[derive(Clone, Copy)]
 pub struct Move { pub cp: [u8; 8], pub co: [u8; 8] } 
+
+// we need this to store an authoritative record of the cuber's moves and to clearly 
+// differentiate Move from State types. Without that record, the server can't maintain 
+// a single source of truth for cube state, and has to trust that the client-delivered 
+// state is accurate. Without that differentiation, Moves have to be a SpacetimeType, 
+// which introduces all kinds of ugliness and is also just conceptually inaccurate. 
+// (The ugliness is mainly heap allocations in BFS, plus LazyLocks since Vecs can't 
+// be initialized at compile time which means they can't be initialized in consts.)
+#[derive(SpacetimeType, Clone)]
+pub struct State { pub cp: Vec<u8>, pub co: Vec<u8> } 
 
 // Corner ids: 0 LDB 1 LDF 2 LUB 3 LUF 4 RDB 5 RDF 6 RUB 7 RUF  (id = 4*right + 2*up + front) 
 //      right = 1 if corner is right, up = 1 if corner is up, front = 1 if corner is front 
@@ -45,6 +55,7 @@ pub struct Cuber {
 	best_score_movect: u32, 
 	best_score_singmaster: String,
 	distance_to_solve: u64,
+	state: State,
 }
 
 #[reducer(client_connected)] 
@@ -57,13 +68,18 @@ pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> {
 		best_score_movect: 0, 
 		best_score_singmaster: String::new(), 
 		distance_to_solve: 88179840, 
+		state: State { cp: vec![0,1,2,3,4,5,6,7], co: vec![0,0,0,0,0,0,0,0] },
 	}); 
 	Ok(())
 }
 
 // the client will scramble the cube and then write the new corner positions using this reducer 
 #[reducer] 
-pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> { 
+pub fn apply_move(ctx: &ReducerContext, m: u8) -> Result<(), String> { 
+	if m > 17 { 
+		return Err("Move indices are only valid in [0,17]".to_string()); 
+	}
+	let m: Move = MOVES[m as usize];
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
 		// TODO: generate PDB, wire up client, build leaderboard (it's just a subscriber, subscribed to an AnonymousViewContext) 
 		ctx.db.cuber().identity().update(Cuber { state: update_state(&cuber.state, m), ..cuber}); 
@@ -75,40 +91,41 @@ pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> {
 	}
 }
 
-fn update_state(state: &Move, new: Move) -> Move {
-	let mut new_move: Move = Move { cp: [0,0,0,0,0,0,0,0], co: [0,0,0,0,0,0,0,0] }; 
-	for i in 0..8 { 
-		let j: usize = i as usize; 
-		let idx: usize = new.cp[j] as usize; 
-		new_move.cp[idx] = (*state).cp[j]; 
-		new_move.co[idx] = ((*state).co[j] + new.co[j]) % 3;  
+fn update_state(state: &State, mv: Move) -> State {
+	let mut new: State = State{ cp: vec![0,0,0,0,0,0,0,0], co: vec![0,0,0,0,0,0,0,0] }; 
+	for j in 0..8 { 
+		let idx: usize = mv.cp[j] as usize; 
+		new.cp[idx] = (*state).cp[j]; 
+		new.co[idx] = ((*state).co[j] + mv.co[j]) % 3;  
 	}
-	new_move
+	new
 }
 
 pub struct BreadthFirstCornerSearcher { 
 	visited: u32,
-	explored_moves: VecDeque<Move>,
+	explored_moves: VecDeque<State>,
 }
 
 impl BreadthFirstCornerSearcher { 
 	pub fn new() -> BreadthFirstCornerSearcher { 
 		BreadthFirstCornerSearcher {
 			visited: 0,
-			explored_moves: VecDeque::<Move>::new(),
+			explored_moves: VecDeque::<State>::new(),
 		}
 	}
 
-	pub fn perform_bfs(&mut self, identity_move: Move, pdb: &mut DbStorage) { 
-		self.explored_moves.push_back(identity_move); 
+	pub fn perform_bfs(&mut self, identity_state: State, pdb: &mut DbStorage) { 
+		self.explored_moves.push_back(identity_state.clone()); 
+		pdb.set_at_index(pdb.get_index(&identity_state).try_into().unwrap(), 0); 
 		while self.explored_moves.is_empty() == false {
 			let curr = self.explored_moves.pop_front().unwrap(); 
 			for mv in MOVES {
-				let new: Move = update_state(&curr, mv).try_into().unwrap(); 
-				let new_slot_in_pdb = pdb.get_at_index(pdb.get_index(&new).try_into().unwrap()); 
+				let new: State = update_state(&curr, mv).try_into().unwrap(); 
+				let new_slot_in_pdb = pdb.get_at_index(pdb.get_index(&new).try_into().unwrap()) as u8; 
 				let current_dist = pdb.get_at_index(pdb.get_index(&curr).try_into().unwrap()); 
 				if new_slot_in_pdb == UNVISITED { 
-					pdb.set_at_index(new_slot_in_pdb.try_into().unwrap(), current_dist + 1); 
+					pdb.set_at_index(pdb.get_index(&new).try_into().unwrap(), 
+							(current_dist + 1).try_into().unwrap());
 					self.explored_moves.push_back(new); 
 				}
 			}
@@ -118,18 +135,18 @@ impl BreadthFirstCornerSearcher {
 
 #[derive(SpacetimeType)]
 pub struct DbStorage { 
-	store: [u32; CORNER_CONFIGURATIONS_CT as usize], 
+	store: Vec<u8>, 
 } 
 
 impl DbStorage { 
 	pub fn new() -> DbStorage { 
 		DbStorage { 
-			store: [UNVISITED; CORNER_CONFIGURATIONS_CT as usize],
+			store: vec![UNVISITED; CORNER_CONFIGURATIONS_CT as usize],
 		}
 	}
 
-	fn rank(p: &[u8; 8]) -> u32 { 
-		const FACT: [u8; 8] = [5040, 720, 120, 24, 6, 2, 1, 1]; 
+	fn rank(p: &Vec<u8>) -> u32 { 
+		const FACT: [u32; 8] = [5040, 720, 120, 24, 6, 2, 1, 1]; 
 		let mut rank = 0u32; 
 		for i in 0..8 { 
 			let mut choice_i = 0u32; 
@@ -143,7 +160,7 @@ impl DbStorage {
 		rank
 	}
 
-	pub fn get_index(&self, new: &Move) -> u32 { 
+	pub fn get_index(&self, new: &State) -> u32 { 
 		let s: u32 = 
 				new.co[1] as u32 * 729 + 
 				new.co[2] as u32 * 243 + 
@@ -157,18 +174,18 @@ impl DbStorage {
 	}
 
 	pub fn get_at_index(&self, idx: usize) -> u32 { 
-		self.store[idx]
+		self.store[idx].into()
 	}
 
-	pub fn set_at_index(&mut self, idx: usize, val: u32) { 
+	pub fn set_at_index(&mut self, idx: usize, val: u8) { 
 		self.store[idx] = val; 
 	}
 }
 
 
 #[table(accessor = cornerpdb, public)] 
-pub struct CornerPatternDatabase { 
-	pdb_identity: ctx.sender(),
+struct CornerPatternDatabase { 
+	pdb_identity: Identity,
 	pdb: Box<DbStorage>,
 }
 
@@ -176,7 +193,7 @@ pub struct CornerPatternDatabase {
 pub fn init_cpdb(ctx: &ReducerContext) { 
 	let mut cpdb: Box<DbStorage> = Box::new(DbStorage::new()); 
 	let mut BFS = BreadthFirstCornerSearcher::new(); 
-	BFS.perform_bfs(Move { cp: [0,1,2,3,4,5,6,7], co: [0,0,0,0,0,0,0,0] }, &mut cpdb); 
+	BFS.perform_bfs(State { cp: vec![0,1,2,3,4,5,6,7], co: vec![0,0,0,0,0,0,0,0] }, &mut cpdb); 
 	ctx.db.cornerpdb().insert(CornerPatternDatabase {
 		pdb_identity: ctx.sender(),
 		pdb: cpdb, 
@@ -229,7 +246,7 @@ pub fn test_and_set_best_score(ctx: &ReducerContext, move_ct: u32, singmaster: S
 	let singmaster = validate_singmaster(singmaster)?;
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) {
 		let curr_score = cuber.best_score_movect; 
-		if curr_score < move_ct { 
+		if move_ct < curr_score { 
 			ctx.db.cuber().identity().update(Cuber { 
 				best_score_movect: move_ct, 
 				best_score_singmaster: singmaster, 
@@ -253,7 +270,7 @@ fn validate_singmaster(move_string: String) -> Result<String, String> {
 			*ch != 'R' && *ch != 'L' && 
 			*ch != 'F' && *ch != 'P' && 
 			*ch != '+' && *ch != '-' && 
-			*ch != '2'}).to_vec().len() > 0 { 
+			*ch != '2'}).collect::<Vec<_>>().len() > 0 { 
 				Err("Move strings can only contain: T,B,R,L,F,P,+,-,2".to_string())
 	} else { 
 		Ok(move_string) 
