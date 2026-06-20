@@ -15,24 +15,24 @@ pub struct Move { pub cp: [u8; 8], pub co: [u8; 8] }
 // Order: U U2 U' D D2 D' R R2 R' L L2 L' F F2 F' B B2 B'
 
 pub const MOVES: [Move; 18] = [
-    Move { cp: [0, 1, 3, 7, 4, 5, 2, 6], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // U
-    Move { cp: [0, 1, 7, 6, 4, 5, 3, 2], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // U2
-    Move { cp: [0, 1, 6, 2, 4, 5, 7, 3], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // U'
-    Move { cp: [1, 5, 2, 3, 0, 4, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // D
-    Move { cp: [5, 4, 2, 3, 1, 0, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // D2
-    Move { cp: [4, 0, 2, 3, 5, 1, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // D'
-    Move { cp: [0, 1, 2, 3, 6, 4, 7, 5], co: [0, 0, 0, 0, 1, 2, 2, 1] },  // R
-    Move { cp: [0, 1, 2, 3, 7, 6, 5, 4], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // R2
-    Move { cp: [0, 1, 2, 3, 5, 7, 4, 6], co: [0, 0, 0, 0, 1, 2, 2, 1] },  // R'
-    Move { cp: [2, 0, 3, 1, 4, 5, 6, 7], co: [2, 1, 1, 2, 0, 0, 0, 0] },  // L
-    Move { cp: [3, 2, 1, 0, 4, 5, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // L2
-    Move { cp: [1, 3, 0, 2, 4, 5, 6, 7], co: [2, 1, 1, 2, 0, 0, 0, 0] },  // L'
-    Move { cp: [0, 5, 2, 1, 4, 7, 6, 3], co: [0, 2, 0, 1, 0, 1, 0, 2] },  // F
-    Move { cp: [0, 7, 2, 5, 4, 3, 6, 1], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // F2
-    Move { cp: [0, 3, 2, 7, 4, 1, 6, 5], co: [0, 2, 0, 1, 0, 1, 0, 2] },  // F'
-    Move { cp: [4, 1, 0, 3, 6, 5, 2, 7], co: [1, 0, 2, 0, 2, 0, 1, 0] },  // B
-    Move { cp: [6, 1, 4, 3, 2, 5, 0, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },  // B2
-    Move { cp: [2, 1, 6, 3, 0, 5, 4, 7], co: [1, 0, 2, 0, 2, 0, 1, 0] },  // B'
+    Move { cp: [0, 1, 3, 7, 4, 5, 2, 6], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // U
+    Move { cp: [0, 1, 7, 6, 4, 5, 3, 2], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // U2
+    Move { cp: [0, 1, 6, 2, 4, 5, 7, 3], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // U'
+    Move { cp: [1, 5, 2, 3, 0, 4, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // D
+    Move { cp: [5, 4, 2, 3, 1, 0, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // D2
+    Move { cp: [4, 0, 2, 3, 5, 1, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // D'
+    Move { cp: [0, 1, 2, 3, 6, 4, 7, 5], co: [0, 0, 0, 0, 1, 2, 2, 1] }, // R
+    Move { cp: [0, 1, 2, 3, 7, 6, 5, 4], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // R2
+    Move { cp: [0, 1, 2, 3, 5, 7, 4, 6], co: [0, 0, 0, 0, 1, 2, 2, 1] }, // R'
+    Move { cp: [2, 0, 3, 1, 4, 5, 6, 7], co: [2, 1, 1, 2, 0, 0, 0, 0] }, // L
+    Move { cp: [3, 2, 1, 0, 4, 5, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // L2
+    Move { cp: [1, 3, 0, 2, 4, 5, 6, 7], co: [2, 1, 1, 2, 0, 0, 0, 0] }, // L'
+    Move { cp: [0, 5, 2, 1, 4, 7, 6, 3], co: [0, 2, 0, 1, 0, 1, 0, 2] }, // F
+    Move { cp: [0, 7, 2, 5, 4, 3, 6, 1], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // F2
+    Move { cp: [0, 3, 2, 7, 4, 1, 6, 5], co: [0, 2, 0, 1, 0, 1, 0, 2] }, // F'
+    Move { cp: [4, 1, 0, 3, 6, 5, 2, 7], co: [1, 0, 2, 0, 2, 0, 1, 0] }, // B
+    Move { cp: [6, 1, 4, 3, 2, 5, 0, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] }, // B2
+    Move { cp: [2, 1, 6, 3, 0, 5, 4, 7], co: [1, 0, 2, 0, 2, 0, 1, 0] }, // B'
 ];
 
 #[table(accessor = cuber, public)]
@@ -41,24 +41,22 @@ pub struct Cuber {
 	identity: Identity, 
 	verified: bool, // verified == consenting human participant solving cube synchronously under supervision, or agent
 	is_human: bool, // this is not a verdict on the cuber's humanity; it just indicates if the solver is an agent
-	name: Option<string>, // I recommend Gregor Samsa, but they can pick anything they like 
+	name: String, // I recommend Gregor Samsa, but they can pick anything they like 
 	best_score_movect: u32, 
 	best_score_singmaster: String,
 	distance_to_solve: u64,
-	state: Move, // we only care about the corners
 }
 
 #[reducer(client_connected)] 
 pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> { 
 	ctx.db.cuber().insert(Cuber { 
-		identity: ctx.sender, 
+		identity: ctx.sender(), 
 		verified: false, 
 		is_human: true, 
-		name: String::new(), 
+		name:String::new(), 
 		best_score_movect: 0, 
 		best_score_singmaster: String::new(), 
 		distance_to_solve: 88179840, 
-		state: Move { cp: [0, 1, 2, 3, 4, 5, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] }, 
 	}); 
 	Ok(())
 }
@@ -68,7 +66,7 @@ pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> {
 pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> { 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
 		// TODO: generate PDB, wire up client, build leaderboard (it's just a subscriber, subscribed to an AnonymousViewContext) 
-		ctx.db.cuber().identity().update(Cuber { state: update_state(cuber.state, m), ..cuber}); 
+		ctx.db.cuber().identity().update(Cuber { state: update_state(&cuber.state, m), ..cuber}); 
 		// lookup corner state in PDB and update distance to solve so that subscriber scrambler 
 		// is triggered if distance <= scramble_threshold 
 		Ok(())
@@ -78,38 +76,39 @@ pub fn apply_move(ctx: &ReducerContext, m: Move) -> Result<(), String> {
 }
 
 fn update_state(state: &Move, new: Move) -> Move {
-	new_move: Move = Move { cp: [0,0,0,0,0,0,0,0], co: [0,0,0,0,0,0,0,0] }; 
+	let mut new_move: Move = Move { cp: [0,0,0,0,0,0,0,0], co: [0,0,0,0,0,0,0,0] }; 
 	for i in 0..8 { 
-		new_move.cp[new.cp[i]] = (*state).cp[i]; 
-		new_move.co[new.cp[i]] = ((*state).co[i] + new.co[i]) % 3;  
+		let j: usize = i as usize; 
+		let idx: usize = new.cp[j] as usize; 
+		new_move.cp[idx] = (*state).cp[j]; 
+		new_move.co[idx] = ((*state).co[j] + new.co[j]) % 3;  
 	}
 	new_move
 }
 
-pub struct BreadthFirstCornerSearcher(identity_move: Move) { 
-	move_store: [Move; 18],
+pub struct BreadthFirstCornerSearcher { 
 	visited: u32,
 	explored_moves: VecDeque<Move>,
 }
 
 impl BreadthFirstCornerSearcher { 
-	pub fn new(&self) -> BreadthFirstCornerSearcher { 
+	pub fn new() -> BreadthFirstCornerSearcher { 
 		BreadthFirstCornerSearcher {
 			visited: 0,
 			explored_moves: VecDeque::<Move>::new(),
 		}
 	}
 
-	pub fn perform_bfs(&mut self, identity_move: Move, corner: &mut db_storage) { 
+	pub fn perform_bfs(&mut self, identity_move: Move, pdb: &mut DbStorage) { 
 		self.explored_moves.push_back(identity_move); 
 		while self.explored_moves.is_empty() == false {
-			let curr = self.explored_moves.pop_front(); 
-			for mv in MOVES { 
-				let new: Move = update_state(&curr, mv); 
-				let new_slot_in_pdb = pdb.get_at_index(pdb.get_index(new)); 
-				let current_dist = pb.get_at_index(pdb.get_index(curr)); 
+			let curr = self.explored_moves.pop_front().unwrap(); 
+			for mv in MOVES {
+				let new: Move = update_state(&curr, mv).try_into().unwrap(); 
+				let new_slot_in_pdb = pdb.get_at_index(pdb.get_index(&new).try_into().unwrap()); 
+				let current_dist = pdb.get_at_index(pdb.get_index(&curr).try_into().unwrap()); 
 				if new_slot_in_pdb == UNVISITED { 
-					pdb.set_at_index(new_slot_in_pdb, current_dist + 1); 
+					pdb.set_at_index(new_slot_in_pdb.try_into().unwrap(), current_dist + 1); 
 					self.explored_moves.push_back(new); 
 				}
 			}
@@ -119,18 +118,18 @@ impl BreadthFirstCornerSearcher {
 
 #[derive(SpacetimeType)]
 pub struct DbStorage { 
-	store: [u32; CORNER_CONFIGURATIONS_CT], 
+	store: [u32; CORNER_CONFIGURATIONS_CT as usize], 
 } 
 
 impl DbStorage { 
-	pub fn new(&self) -> DbStorage { 
+	pub fn new() -> DbStorage { 
 		DbStorage { 
-			store = [UNVISITED; CORNER_CONFIGURATIONS_CT],
+			store: [UNVISITED; CORNER_CONFIGURATIONS_CT as usize],
 		}
 	}
 
 	fn rank(p: &[u8; 8]) -> u32 { 
-		const FACT: [u32; 8] = [5040, 720, 120, 24, 6, 2, 1, 1]; 
+		const FACT: [u8; 8] = [5040, 720, 120, 24, 6, 2, 1, 1]; 
 		let mut rank = 0u32; 
 		for i in 0..8 { 
 			let mut choice_i = 0u32; 
@@ -144,24 +143,24 @@ impl DbStorage {
 		rank
 	}
 
-	pub fn get_index(&self, new: Move) -> u64 { 
-		let mut s: u32 = 
+	pub fn get_index(&self, new: &Move) -> u32 { 
+		let s: u32 = 
 				new.co[1] as u32 * 729 + 
 				new.co[2] as u32 * 243 + 
 				new.co[3] as u32 *  81 + 
 				new.co[4] as u32 *  27 +
 				new.co[5] as u32 *   9 + 
 				new.co[6] as u32 *   3 + 
-				new.co[7]; 
+				new.co[7] as u32; 
 
-		return self.rank(p) * 2187 + orientationNum;
+		return DbStorage::rank(&new.cp) * 2187 + s;
 	}
 
-	pub fn get_at_index(&self, idx: u32) -> u32 { 
+	pub fn get_at_index(&self, idx: usize) -> u32 { 
 		self.store[idx]
 	}
 
-	pub fn set_at_index(&mut self, idx: u32, val: u32) { 
+	pub fn set_at_index(&mut self, idx: usize, val: u32) { 
 		self.store[idx] = val; 
 	}
 }
@@ -169,18 +168,18 @@ impl DbStorage {
 
 #[table(accessor = cornerpdb, public)] 
 pub struct CornerPatternDatabase { 
-	#[primary_key] 
-	pdb_identity: Identity, 
+	pdb_identity: ctx.sender(),
 	pdb: Box<DbStorage>,
 }
 
 #[reducer(init)] 
 pub fn init_cpdb(ctx: &ReducerContext) { 
-	let cpbd: DbStorage = Box::new(DbStorage::new()); 
-	let BFS = BreadthFirstCornerSearcher::new(); 
-	BFS.perform_bfs(Move { cp: [0,1,2,3,4,5,6,7], co: [0,0,0,0,0,0,0,0] }, &mut cpbd); 
-	ctx.db.cornerpdb.insert(CornerPatternDatabase { 
-		pbd: cpdb, 
+	let mut cpdb: Box<DbStorage> = Box::new(DbStorage::new()); 
+	let mut BFS = BreadthFirstCornerSearcher::new(); 
+	BFS.perform_bfs(Move { cp: [0,1,2,3,4,5,6,7], co: [0,0,0,0,0,0,0,0] }, &mut cpdb); 
+	ctx.db.cornerpdb().insert(CornerPatternDatabase {
+		pdb_identity: ctx.sender(),
+		pdb: cpdb, 
 	});
 }
 
@@ -226,7 +225,7 @@ pub fn set_human_status(ctx: &ReducerContext, is_human: bool) -> Result<(), Stri
 }
 
 #[reducer] 
-pub fn test_and_set_best_score(ctx: &ReducerContext, move_ct: i32, singmaster: String) -> Result<(), String> { 
+pub fn test_and_set_best_score(ctx: &ReducerContext, move_ct: u32, singmaster: String) -> Result<(), String> { 
 	let singmaster = validate_singmaster(singmaster)?;
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) {
 		let curr_score = cuber.best_score_movect; 
@@ -239,6 +238,8 @@ pub fn test_and_set_best_score(ctx: &ReducerContext, move_ct: i32, singmaster: S
 		} else { 
 			Err("Failed to set best score".to_string()) 
 		}
+	} else { 
+		Err("Failed to set best score".to_string())
 	}
 }
 
@@ -248,11 +249,11 @@ fn validate_singmaster(move_string: String) -> Result<String, String> {
 	if move_string.is_empty() { 
 		Err("Move strings must not be empty".to_string())
 	} else if move_string.chars().filter(|ch| {
-			ch != 'T' && ch != 'B' &&
-			ch != 'R' && ch != 'L' && 
-			ch != 'F' && ch != 'P' && 
-			ch != '+' && ch != '-' && 
-			ch != '2'}).len() > 0 { 
+			*ch != 'T' && *ch != 'B' &&
+			*ch != 'R' && *ch != 'L' && 
+			*ch != 'F' && *ch != 'P' && 
+			*ch != '+' && *ch != '-' && 
+			*ch != '2'}).to_vec().len() > 0 { 
 				Err("Move strings can only contain: T,B,R,L,F,P,+,-,2".to_string())
 	} else { 
 		Ok(move_string) 
@@ -262,7 +263,7 @@ fn validate_singmaster(move_string: String) -> Result<String, String> {
 #[reducer] 
 pub fn set_distance_to_solve(ctx: &ReducerContext, distance: u64) -> Result<(), String> { 
 	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
-		ctx.db.cuber().identity().update(cuber { distance_to_solve: distance, ..cuber }); 
+		ctx.db.cuber().identity().update(Cuber { distance_to_solve: distance, ..cuber }); 
 		Ok(())
 	} else { 
 		Err("Failed to set distance to solve for cuber".to_string())
