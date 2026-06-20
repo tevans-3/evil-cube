@@ -19,6 +19,14 @@ jobs:
       issues: write
     steps:
     - uses: actions/checkout@v4
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        components: rustfmt
+    - name: Add wasm32 target 
+      run: rustup target add wasm-32-unknown-unknown
     - name: Build
       working-directory: ./backend/spacetimedb
       run: cargo build --target wasm32-unknown-unknown
