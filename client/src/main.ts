@@ -1,5 +1,9 @@
-import * as evil from './evil/api.js';
+import * as evil from './evil/api.ts';
 import * as THREE from 'three';
+import { DbConnection, tables } from '../module_bindings';
+import { Identity, Timestamp } from 'spacetimedb';
+import type * as Types from '../module_bindings/types';
+
 
 // CITATIONS
 //
@@ -10,45 +14,69 @@ import * as THREE from 'three';
 // 5. https://stackoverflow.com/questions/500221/how-would-you-represent-a-rubiks-cube-in-code\
 // 6. SpacetimeDB documentation
 
-let canvas;  
+/* DATA ACCESS */
 
-const debug = true; 
+const HOST = import.meta.env.SPACETIME_URI;
+const AUTH_TOKEN = import.meta.env.SPACETIME_AUTH_TOKEN;
+const DB_NAME = import.meta.env.SPACETIME_DB_NAME;
+
+const conn = DbConnection.builder()
+    .withUri(HOST)
+    .withDatabaseName(DB_NAME)
+    .onConnect((conn, identity, token) => {
+        console.log(`Connected! Identity: ${identity.toHexString()}`);
+        localStorage.setItem(AUTH_TOKEN, token);
+        conn.subscriptionBuilder()
+            .onApplied(ctx => {
+                console.log(`Ready with ${ctx.db.cuber.count()} cubers`);
+            })
+            .subscribe([tables.cuber]);
+    })
+    .onConnectError((_ctx, error) => {
+        console.error(`Connection failed:`, error);
+    })
+    .onDisconnect(() => {
+        console.log(`Disconnected from SpacetimeDB`);
+    });
+
+let canvas: HTMLCanvasElement;
+
+const debug = false;
 
 var state = new evil.InteractionState();
-var stateMachine = new evil.UserInteractionStateMachine(); 
+var stateMachine = new evil.UserInteractionStateMachine();
 
-function _getCanvasRelativePosition(event) {
-  const rect = canvas.getBoundingClientRect();
-  return {
-    x: (event.clientX - rect.left) * canvas.width  / rect.width,
-    y: (event.clientY - rect.top ) * canvas.height / rect.height,
-  };
+function _getCanvasRelativePosition(event: MouseEvent | Touch) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: (event.clientX - rect.left) * canvas.width / rect.width,
+        y: (event.clientY - rect.top) * canvas.height / rect.height,
+    };
 }
- 
-function _setPickPosition(event) {
-  const pos = _getCanvasRelativePosition(event);
-  evil.pickPosition.x = (pos.x / canvas.width ) *  2 - 1;
-  evil.pickPosition.y = (pos.y / canvas.height) * -2 + 1;  
+function _setPickPosition(event: MouseEvent | Touch) {
+    const pos = _getCanvasRelativePosition(event);
+    evil.pickPosition.x = (pos.x / canvas.width) * 2 - 1;
+    evil.pickPosition.y = (pos.y / canvas.height) * -2 + 1;
 }
- 
+
 function _clearPickPosition() {
-  evil.pickPosition.x = -100000;
-  evil.pickPosition.y = -100000;
+    evil.pickPosition.x = -100000;
+    evil.pickPosition.y = -100000;
 }
-function _dragAngle(d) { 
-    let k = (Math.PI / 2) * 3; 
-    return d * k; 
+function _dragAngle(d: number) {
+    let k = (Math.PI / 2) * 3;
+    return d * k;
 }
 
 /*   DRIVER CODE   */
 
-let rubiks = new evil.ThreeScene(); 
-let cameraPosition = new THREE.Vector3(3,5,3); 
-rubiks.init('Black', cameraPosition, 1); 
-canvas = rubiks.canvas; 
+let rubiks = new evil.ThreeScene();
+let cameraPosition = new THREE.Vector3(3, 5, 3);
+rubiks.init('Black', cameraPosition, 1);
+canvas = rubiks.canvas;
 
-let cubeInit = new evil.RubiksCube();
-let cube = cubeInit.visualize(rubiks.scene); 
+let cubeInit = new evil.RubiksCube("");
+let cube = cubeInit.visualize(rubiks.scene);
 
 
 _clearPickPosition();
@@ -56,31 +84,31 @@ _clearPickPosition();
 const pickHelper = new evil.PickHelper();
 
 function animate() {
-    rubiks.time = performance.now() * 0.001; 
+    rubiks.time = performance.now() * 0.001;
     rubiks.renderer.render(rubiks.scene, rubiks.camera);
 }
 
-if (debug) { 
+if (debug) {
     // X == red, Y == green, Z == blue
     const axesHelper = new THREE.AxesHelper(5); rubiks.scene.add(axesHelper);
 }
 
 
-rubiks.renderer.setAnimationLoop(animate); 
+rubiks.renderer.setAnimationLoop(animate);
 
-function gestureMoveLogic(e, touched = false) {
+function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
     if (!stateMachine.picked && !stateMachine.dragging) return;
 
-    if (touched) _setPickPosition(e.touches[0]);
-    else _setPickPosition(e); 
+    if (touched) _setPickPosition((e as TouchEvent).touches[0]);
+    else _setPickPosition(e as MouseEvent);
 
     // need to cast a ray to intersect the clicked on face plane in order 
     // to compute the currentDragWorld, the drag in world space
     evil.mouseMoveRaycaster.layers.set(0);
-    evil.mouseMoveRaycaster.setFromCamera(evil.pickPosition, rubiks.camera);
+    evil.mouseMoveRaycaster.setFromCamera(new THREE.Vector2(evil.pickPosition.x, evil.pickPosition.y), rubiks.camera);
     const intersectionPoint = new THREE.Vector3();
     const result = evil.mouseMoveRaycaster.ray.intersectPlane(state.clickedOnFacePlane, intersectionPoint);
-    
+
     if (!result) return;
     const currentDragWorld = intersectionPoint.clone().sub(state.clickedOnPoint);
 
@@ -93,7 +121,7 @@ function gestureMoveLogic(e, touched = false) {
         // prevents arbitrarily small drag distances from triggering a state 
         // change; 1/3 should be replaced with an exported global in ./shared.js 
         if (currentDragWorld.length() < 1 / 3 / 3) {
-            _clearPickPosition(e);
+            _clearPickPosition();
             return;
         }
 
@@ -106,8 +134,8 @@ function gestureMoveLogic(e, touched = false) {
             const dragWorld = state.dragEndPoint.clone().sub(state.clickedOnPoint);
 
             let axes = [new THREE.Vector3(1, 0, 0),
-                        new THREE.Vector3(0, 1, 0),
-                        new THREE.Vector3(0, 0, 1)];
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, 0, 1)];
             let names = ['x', 'y', 'z'];
             let inPlaneAxes = axes.filter((_, i) => names[i] !== state.normalAxis);
 
@@ -142,16 +170,16 @@ function gestureMoveLogic(e, touched = false) {
 
             // selecting the layer to rotate by picking the cubelets which are within 
             // a small threshold of the rotation axis 
-            state.layerToRotate = cube.children.filter(cubelet =>
-                Math.abs(cubelet.rubikPosition.dot(state.rotateAroundAxis)
-                    - state.clickedOnCubeletPosition.dot(state.rotateAroundAxis)) < 1e-6);
+            state.layerToRotate = cube.children
+                .filter(c => Math.abs((c as evil.Cubelet).rubikPosition.dot(state.rotateAroundAxis)
+                    - state.clickedOnCubeletPosition.dot(state.rotateAroundAxis)) < 1e-6) as evil.Cubelet[];
 
             // have to attach the cubelets to a pivot parent object, whose only 
             // purpose in life is to rotate cubelet layers 
             pivot = new THREE.Object3D();
             pivot.position.copy(evil.center);
             rubiks.scene.add(pivot);
-            state.layerToRotate.forEach(cubelet => pivot.attach(cubelet));
+            state.layerToRotate.forEach((cubelet: evil.Cubelet) => pivot.attach(cubelet));
 
             // convert the drag vector to a scalar representing distance of drag
             // the dot product takes the drag direction vector and applies it to the 
@@ -159,10 +187,10 @@ function gestureMoveLogic(e, touched = false) {
             state.dragDistance = currentDragWorld.dot(state.dragDir);
             stateMachine.update("dragging");
         }
-    } 
+    }
     else if (stateMachine.dragging) {
         if (result) {
-            state.dragDistance = currentDragWorld.dot(state.dragDir); 
+            state.dragDistance = currentDragWorld.dot(state.dragDir);
             let angle = _dragAngle(state.dragDistance);
             // rotate just the pivot
             // can't mutate the rubikPosition attributes on the cubelets
@@ -174,9 +202,9 @@ function gestureMoveLogic(e, touched = false) {
     }
 }
 
-function gestureDownLogic(e, touched = false) {
-    if (touched) _setPickPosition(e.touches[0]);
-    else _setPickPosition(e); 
+function gestureDownLogic(e: MouseEvent | TouchEvent, touched = false) {
+    if (touched) _setPickPosition((e as TouchEvent).touches[0]);
+    else _setPickPosition(e as MouseEvent);
     let picked = pickHelper.pick(evil.pickPosition, rubiks.scene, rubiks.camera, rubiks.time, state);
     if (picked) {
         stateMachine.update("picked");
@@ -184,10 +212,10 @@ function gestureDownLogic(e, touched = false) {
     }
 }
 
-function gestureUpLogic(e, touched = false) {  
+function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     stateMachine.update("hovering");
-    if (touched) _setPickPosition(e.touches[0]);
-    else _setPickPosition(e); 
+    if (touched) _setPickPosition((e as TouchEvent).touches[0]);
+    else _setPickPosition(e as MouseEvent);
     rubiks.controls.enabled = true;
     if (!state.layerToRotate) {
         state.reset(); return;
@@ -195,12 +223,12 @@ function gestureUpLogic(e, touched = false) {
     const turns = Math.round(_dragAngle(state.dragDistance) / (Math.PI / 2));
     const angle = turns * (Math.PI / 2);
     const q = new THREE.Quaternion().setFromAxisAngle(state.rotateAroundAxis, angle);
-    state.layerToRotate.forEach(c => c.rubikPosition.sub(evil.center).applyQuaternion(q).add(evil.center));
+    state.layerToRotate.forEach((c: evil.Cubelet) => c.rubikPosition.sub(evil.center).applyQuaternion(q).add(evil.center));
     let grid = [0, 1 / 3, 2 / 3];
     // need to snap the cubelets back to their proper coordinates in the cube lattice 
-    const snap = v => grid.reduce((b, g) =>
+    const snap = (v: number) => grid.reduce((b, g) =>
         Math.abs(v - g) < Math.abs(v - b) ? g : b);
-    state.layerToRotate.forEach(cubelet => cubelet
+    state.layerToRotate.forEach((cubelet: evil.Cubelet) => cubelet
         .rubikPosition
         .set(
             snap(cubelet.rubikPosition.x),
@@ -209,9 +237,9 @@ function gestureUpLogic(e, touched = false) {
         )
     );
     pivot.quaternion.copy(q);
-    state.layerToRotate.forEach(cubelet => cube.attach(cubelet));
+    state.layerToRotate.forEach((cubelet: evil.Cubelet) => cube.attach(cubelet));
     rubiks.scene.remove(pivot);
-    _clearPickPosition(e);
+    _clearPickPosition();
     state.reset();
 }
 
@@ -226,32 +254,32 @@ function gestureUpLogic(e, touched = false) {
     WE KNOW NOTHING SAVE THE MAGNIFICENCE OF THIS MIGHTY MISSION!
     LISTENING FOR EVENTS!
 */
-let pivot; 
+let pivot: THREE.Object3D;
 window.addEventListener('mousedown', (e) => {
-    gestureDownLogic(e); 
+    gestureDownLogic(e);
 });
 
 window.addEventListener('mousemove', (e) => {
-    gestureMoveLogic(e);  
+    gestureMoveLogic(e);
 });
 
 window.addEventListener('mouseup', (e) => {
-    gestureUpLogic(e); 
+    gestureUpLogic(e);
 });
 
 window.addEventListener('mouseleave', _clearPickPosition);
 
 window.addEventListener('touchstart', (event) => {
     event.preventDefault();
-    gestureDownLogic(event, touched = true); 
+    gestureDownLogic(event, true);
 }, { passive: false });
 
 window.addEventListener('touchmove', (event) => {
     event.preventDefault();
-    gestureMoveLogic(event, touched = true); 
+    gestureMoveLogic(event, true);
 });
 
 window.addEventListener('touchend', (e) => {
     e.preventDefault();
-    gestureUpLogic(e, touched = true);
+    gestureUpLogic(e, true);
 }); 

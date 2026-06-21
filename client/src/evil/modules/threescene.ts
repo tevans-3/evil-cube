@@ -1,6 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 export class ThreeScene {
+    scene: THREE.Scene;
+    camera: THREE.PerspectiveCamera;
+    renderer: THREE.WebGLRenderer;
+    ambientLight: THREE.AmbientLight;
+    light: THREE.DirectionalLight;
+    canvas: any;
+    time: number;
+    controls: OrbitControls;
     constructor() { 
         this.scene = new THREE.Scene(); 
         this.camera = new THREE.PerspectiveCamera(30, 
@@ -13,7 +21,7 @@ export class ThreeScene {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     }
 
-    init(bg, cam, camLayer) { 
+    init(bg: any, cam: any, camLayer: any) { 
         this.scene.background = new THREE.Color(bg);
         this.scene.add(this.ambientLight); 
         this.camera.position.set(cam.x, cam.y, cam.z); 

@@ -4,9 +4,20 @@ import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';  
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-export class RubiksCube { 
+export interface Cubelet extends THREE.Mesh {
+    rubikPosition: THREE.Vector3
+}
+
+export class RubiksCube {
+    private NUM_CUBELETS: number;
+    private NUM_CUBELETS_PER_ROW: number;
+    private CUBELET_SIZE: number;
+    private PALETTE: { red: string; orange: string; yellow: string; green: string; blue: string; white: string; black: string; };
+    private loader: THREE.TextureLoader;
+    public FACE_COLORS!: Record<number, string>;
+    public texture: any; 
     // only 3x3 supported, could have general solution
-    constructor(texture) { 
+    constructor(texture: any) { 
         this.NUM_CUBELETS = 27;  
         this.NUM_CUBELETS_PER_ROW = 3; 
         this.CUBELET_SIZE = 1/3;  
@@ -31,7 +42,7 @@ export class RubiksCube {
         this.texture = this.loader.load(texture); 
     }
         
-    computeCubeletFaceColors(i, j, k) {
+    computeCubeletFaceColors(i: number, j: number, k: number) {
         if (i == 2) { this.FACE_COLORS[0] = this.PALETTE.red; }     // +X right
         if (i == 0) { this.FACE_COLORS[1] = this.PALETTE.orange; }  // -X left
         if (j == 2) { this.FACE_COLORS[2] = this.PALETTE.white; }   // +Y top
@@ -43,10 +54,10 @@ export class RubiksCube {
     defaultCubeletFaceColors() {
         this.FACE_COLORS = Object.fromEntries(
             Array.from({ length: 6 }, (_, i) => [i, this.PALETTE.black])
-        );
+        ) as Record<number, string>;
     }
 
-    visualize(scene) {
+    visualize(scene: any) {
         //TODO handle non 3x3 cubes 
         var cube = new THREE.Group();
         let LINE_DISTANCE_FROM_CUBE_FILLET = 0.027;
@@ -54,7 +65,7 @@ export class RubiksCube {
             for (let j = 0; j < this.NUM_CUBELETS_PER_ROW; j++) {
                 for (let k = 0; k < this.NUM_CUBELETS_PER_ROW; k++) {
                     this.computeCubeletFaceColors(i, j, k);
-                    var cubelet = new THREE.Mesh(
+                    const cubelet: Cubelet = Object.assign(new THREE.Mesh(
                         new RoundedBoxGeometry(this.CUBELET_SIZE, this.CUBELET_SIZE, this.CUBELET_SIZE, 6, 0.05),
                         [
                             new THREE.MeshPhongMaterial({ color: this.FACE_COLORS[0], alphaTest: 0.5 }), // back   -- if i == 2, visible
@@ -64,7 +75,8 @@ export class RubiksCube {
                             new THREE.MeshPhongMaterial({ color: this.FACE_COLORS[4], alphaTest: 0.5 }), // left   -- if k == 2, visible
                             new THREE.MeshPhongMaterial({ color: this.FACE_COLORS[5], alphaTest: 0.5 }), // right  -- if k == 0, visible
                         ]
-                    );
+                    ), 
+                    { rubikPosition: new THREE.Vector3(0, 0, 0) });
 
                     cubelet.position.x += i / this.NUM_CUBELETS_PER_ROW;
                     cubelet.position.y += j / this.NUM_CUBELETS_PER_ROW;
@@ -95,9 +107,5 @@ export class RubiksCube {
         }
         scene.add(cube); 
         return cube; 
-    }
-
-    rotate(cube, clickedCubelet) { 
-
     }
 }

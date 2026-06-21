@@ -1,6 +1,17 @@
 import * as THREE from 'three';
 
-export class InteractionState { 
+export class InteractionState {
+    clickedOnPoint: any;
+    dragEndPoint: any;
+    rotateAroundAxis: any;
+    clickedOnFace: any;
+    clickedOnFacePlane: any;
+    dragDir: any;
+    worldNormal: any;
+    normalAxis: any;
+    clickedOnCubeletPosition: any;
+    layerToRotate: any;
+    dragDistance: any; 
     constructor(clickedOnPoint=null, 
                 rotateAroundAxis=null, clickedOnFace=null, 
                 clickedOnFacePlane=null, dragDir=null, 
@@ -26,6 +37,12 @@ export class InteractionState {
 }
 
 export class UserInteractionStateMachine {
+    hovering: boolean;
+    picked: boolean;
+    clicking: boolean;
+    dragging: boolean;
+    animating: boolean;
+    stopped: boolean;
     constructor() { 
         this.hovering = true; 
         this.picked = false; 
@@ -43,7 +60,7 @@ export class UserInteractionStateMachine {
         }); 
     }
 
-    update(action) { 
+    update(action: any) { 
         switch (action) { 
             case "hovering":
                 this.reset();

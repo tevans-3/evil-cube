@@ -1,18 +1,21 @@
 {
   "name": "evil-cube",
-  "version": "0.0.0",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/three": "^0.184.1",
+    "typescript": "~6.0.2",
     "vite": "^8.0.12"
   },
   "dependencies": {
-    "three": "^0.184.0",
-    "three-orbitcontrols": "^2.110.2"
+    "@types/node": "^26.0.0",
+    "spacetimedb": "^2.6.0",
+    "three": "^0.184.0"
   }
 }

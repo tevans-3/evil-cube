@@ -4,7 +4,7 @@ export var mousePosition = { x: 0, y: 0 };
 
 export var pickPosition = { x: 0, y: 0 }; 
 
-export function _principalComponent(v) { 
+export function _principalComponent(v: any) { 
     var maxAxis = 'x', 
         max = Math.abs(v.x); 
 

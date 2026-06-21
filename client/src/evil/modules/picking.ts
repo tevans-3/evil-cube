@@ -1,7 +1,12 @@
 import * as THREE from 'three'; 
-import { _principalComponent, pickPosition, mousePosition } from '../shared.js'; 
+import { _principalComponent, pickPosition, mousePosition } from '../shared.ts'; 
 
-export class PickHelper { 
+export class PickHelper {
+    raycaster: any;
+    faceNormal: any;
+    point: any;
+    pickedObject: any;
+    pickedObjectSavedColor: number; 
     constructor() { 
         this.raycaster = new THREE.Raycaster();
         this.raycaster.layers.set(0);
@@ -11,9 +16,17 @@ export class PickHelper {
         this.pickedObjectSavedColor = 0; 
     }
 
-    pick(normalizedPosition, scene, camera, time, state) {
+    pick(normalizedPosition: any, scene: { children: any; }, camera: any, time: number,
+        state: {
+            clickedOnCubeletPosition: any;
+            clickedOnPoint: any;
+            normalAxis: string;
+            clickedOnFacePlane: any;
+            clickedOnFace: number;
+            worldNormal: any;
+        }) {
         if (this.pickedObject) {
-            this.pickedObject.material.forEach(material => material.emissive.setHex(this.pickedObjectSavedColor)); 
+            this.pickedObject.material.forEach((material: { emissive: { setHex: (arg0: number) => any; }; }) => material.emissive.setHex(this.pickedObjectSavedColor)); 
             this.pickedObject = undefined; 
         }
 
@@ -72,7 +85,6 @@ export class PickHelper {
             state.worldNormal = worldNormal;
             
             return true; 
-            this.pickedObject.material.forEach(material => material.emissive.setHex((time*8) %2 > 1 ? 0xFFFF00 : 0xFF0000));
         }
     }
 }
