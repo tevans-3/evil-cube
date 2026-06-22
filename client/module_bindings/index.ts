@@ -46,6 +46,7 @@ import TestAndSetBestScoreReducer from "./test_and_set_best_score_reducer";
 // Import all table schema definitions
 import CornerpdbRow from "./cornerpdb_table";
 import CuberRow from "./cuber_table";
+import TopScorersRow from "./top_scorers_table";
 
 /** Type-only namespace exports for generated type groups. */
 
@@ -61,6 +62,9 @@ const tablesSchema = __schema({
   cuber: __table({
     name: 'cuber',
     indexes: [
+      { accessor: 'best_score_movect', name: 'cuber_best_score_movect_idx_btree', algorithm: 'btree', columns: [
+        'bestScoreMovect',
+      ] },
       { accessor: 'identity', name: 'cuber_identity_idx_btree', algorithm: 'btree', columns: [
         'identity',
       ] },
@@ -69,6 +73,13 @@ const tablesSchema = __schema({
       { name: 'cuber_identity_key', constraint: 'unique', columns: ['identity'] },
     ],
   }, CuberRow),
+  top_scorers: __table({
+    name: 'top_scorers',
+    indexes: [
+    ],
+    constraints: [
+    ],
+  }, TopScorersRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */

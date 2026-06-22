@@ -5,7 +5,9 @@ import { LineSegments2 } from 'three/addons/lines/LineSegments2.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
 export interface Cubelet extends THREE.Mesh {
-    rubikPosition: THREE.Vector3
+    rubikPosition: THREE.Vector3; 
+    isCorner: boolean; 
+    cornerId: any; // number if isCorner is set to true; null otherwise
 }
 
 export class RubiksCube {
@@ -65,6 +67,16 @@ export class RubiksCube {
             for (let j = 0; j < this.NUM_CUBELETS_PER_ROW; j++) {
                 for (let k = 0; k < this.NUM_CUBELETS_PER_ROW; k++) {
                     this.computeCubeletFaceColors(i, j, k);
+                    const max = this.NUM_CUBELETS_PER_ROW - 1; 
+                    const onEdge   = (v: number): boolean => v == 0 || v == max; 
+                    const isFront  = (i: number): boolean => i == 2; 
+                    const isUp     = (j: number): boolean => j == 2; 
+                    const isRight  = (k: number): boolean => k == 2; 
+                    const isCorner = onEdge(i) && onEdge(j) && onEdge(k); 
+                    const front = isFront ? 1 : 0; 
+                    const up    = isUp ? 1 : 0; 
+                    const right = isRight ? 1 : 0;
+                    const id    = isCorner ? (4 * front + 2 * up + right) : null;
                     const cubelet: Cubelet = Object.assign(new THREE.Mesh(
                         new RoundedBoxGeometry(this.CUBELET_SIZE, this.CUBELET_SIZE, this.CUBELET_SIZE, 6, 0.05),
                         [
@@ -76,7 +88,11 @@ export class RubiksCube {
                             new THREE.MeshPhongMaterial({ color: this.FACE_COLORS[5], alphaTest: 0.5 }), // right  -- if k == 0, visible
                         ]
                     ), 
-                    { rubikPosition: new THREE.Vector3(0, 0, 0) });
+                        {
+                            rubikPosition: new THREE.Vector3(0, 0, 0),
+                            isCorner: isCorner, 
+                            cornerId: id
+                        });
 
                     cubelet.position.x += i / this.NUM_CUBELETS_PER_ROW;
                     cubelet.position.y += j / this.NUM_CUBELETS_PER_ROW;

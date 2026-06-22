@@ -1,10 +1,13 @@
 import * as evil from './evil/api.ts';
+import { Table } from './components/table.ts';
 import * as THREE from 'three';
 import { DbConnection, tables } from '../module_bindings';
 import { Identity, Timestamp } from 'spacetimedb';
 import type * as Types from '../module_bindings/types';
 
-
+class Cuber { 
+    
+}
 // CITATIONS
 //
 // 1. THREE.js documentation
@@ -29,15 +32,34 @@ const conn = DbConnection.builder()
         conn.subscriptionBuilder()
             .onApplied(ctx => {
                 console.log(`Ready with ${ctx.db.cuber.count()} cubers`);
+
+                const leaderboard = Table<CuberView>(Array.from(ctx.db.top_scorers.iter()),
+                    [{ header: "NAME",   cell: c => c.name },
+                     { header: "SCORE",  cell: c => c.score }, 
+                     { header: "REPLAY", cell: c => ReplayButton(c.singmaster)}
+                    ]);
             })
-            .subscribe([tables.cuber]);
+            .subscribe([tables.cuber, "SELECT * FROM top_scorers"]);
     })
     .onConnectError((_ctx, error) => {
         console.error(`Connection failed:`, error);
     })
     .onDisconnect(() => {
         console.log(`Disconnected from SpacetimeDB`);
-    });
+    })
+    .build();
+
+conn.db.cuber.onInsert((ctx, cuber) => {
+
+}); 
+
+conn.db.cuber.onDelete((ctx, cuber) => {
+
+});
+
+conn.db.cuber.onUpdate((ctx, cuber) => {
+
+});
 
 let canvas: HTMLCanvasElement;
 

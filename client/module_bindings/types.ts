@@ -32,6 +32,13 @@ export const Cuber = __t.object("Cuber", {
 });
 export type Cuber = __Infer<typeof Cuber>;
 
+export const CuberView = __t.object("CuberView", {
+  name: __t.string(),
+  score: __t.u32(),
+  singmaster: __t.string(),
+});
+export type CuberView = __Infer<typeof CuberView>;
+
 export const DbStorage = __t.object("DbStorage", {
   store: __t.byteArray(),
 });
