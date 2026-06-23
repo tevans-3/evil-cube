@@ -10,12 +10,17 @@ export interface Cubelet extends THREE.Mesh {
     cornerId: any; // number if isCorner is set to true; null otherwise
 }
 
+export interface Cube extends THREE.Group { 
+    children: Cubelet[];
+}
+
 export class RubiksCube {
     private NUM_CUBELETS: number;
     private NUM_CUBELETS_PER_ROW: number;
     private CUBELET_SIZE: number;
     private PALETTE: { red: string; orange: string; yellow: string; green: string; blue: string; white: string; black: string; };
     private loader: THREE.TextureLoader;
+    private cube: Cube;
     public FACE_COLORS!: Record<number, string>;
     public texture: any; 
     // only 3x3 supported, could have general solution
@@ -73,9 +78,9 @@ export class RubiksCube {
                     const isUp     = (j: number): boolean => j == 2; 
                     const isRight  = (k: number): boolean => k == 2; 
                     const isCorner = onEdge(i) && onEdge(j) && onEdge(k); 
-                    const front = isFront ? 1 : 0; 
-                    const up    = isUp ? 1 : 0; 
-                    const right = isRight ? 1 : 0;
+                    const front = isFront(i) ? 1 : 0; 
+                    const up    = isUp(j) ? 1 : 0; 
+                    const right = isRight(k) ? 1 : 0;
                     const id    = isCorner ? (4 * front + 2 * up + right) : null;
                     const cubelet: Cubelet = Object.assign(new THREE.Mesh(
                         new RoundedBoxGeometry(this.CUBELET_SIZE, this.CUBELET_SIZE, this.CUBELET_SIZE, 6, 0.05),
@@ -105,9 +110,7 @@ export class RubiksCube {
                         this.CUBELET_SIZE - LINE_DISTANCE_FROM_CUBE_FILLET,
                         this.CUBELET_SIZE - LINE_DISTANCE_FROM_CUBE_FILLET); 
                     const edges = new THREE.EdgesGeometry(edgeLord, 1); 
-                    //const positions = edges.attributes.position.array;
                     const lineGeometry = new LineSegmentsGeometry().fromEdgesGeometry(edges);  
-                    //lineGeometry.setPositions(positions); 
                     const lineMaterial = new LineMaterial({ 
                         color: 'black', 
                         linewidth: 5,
@@ -117,6 +120,7 @@ export class RubiksCube {
                     cubeEdges.layers.set(1);
                     cubelet.add(cubeEdges);
                     cube.add(cubelet);
+                    this.cube.children.push(cubelet);
                     this.defaultCubeletFaceColors();
                 }
             }
@@ -124,4 +128,15 @@ export class RubiksCube {
         scene.add(cube); 
         return cube; 
     }
+
+    getCornerPermutationState() { 
+        return this.cube.children
+            .filter(c => c.isCorner == true)
+            .map(c => { c.cornerId, c.rubikPosition });
+    }
+
+    getCornerOrientationState() { 
+
+    }
+
 }

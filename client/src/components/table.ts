@@ -5,7 +5,6 @@
 
 export function Table<T>(rows: T[], columns: Column<T>[]) { 
     const table = document.createElement("table"); 
-    table.id = "leaderboard";
     const hrow = table.createTHead().insertRow(); 
     for (const col of columns) { 
         const th = document.createElement("th"); 

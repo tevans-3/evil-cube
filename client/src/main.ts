@@ -1,13 +1,11 @@
 import * as evil from './evil/api.ts';
 import { Table } from './components/table.ts';
+import { ReplayButton, replay } from './components/replay.ts';
 import * as THREE from 'three';
 import { DbConnection, tables } from '../module_bindings';
 import { Identity, Timestamp } from 'spacetimedb';
 import type * as Types from '../module_bindings/types';
 
-class Cuber { 
-    
-}
 // CITATIONS
 //
 // 1. THREE.js documentation
@@ -36,7 +34,7 @@ const conn = DbConnection.builder()
                 const leaderboard = Table<CuberView>(Array.from(ctx.db.top_scorers.iter()),
                     [{ header: "NAME",   cell: c => c.name },
                      { header: "SCORE",  cell: c => c.score }, 
-                     { header: "REPLAY", cell: c => ReplayButton(c.singmaster)}
+                     { header: "REPLAY", cell: c => ReplayButton(c.singmaster, replay(c.singmaster))}
                     ]);
             })
             .subscribe([tables.cuber, "SELECT * FROM top_scorers"]);
@@ -139,6 +137,7 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
 
         // these magic numbers correspond to a fraction of cube size
         // basically we want to only transition from PICKED -> DRAGGING
+
         // when the gesture has dragged a reasonable distance, which
         // prevents arbitrarily small drag distances from triggering a state 
         // change; 1/3 should be replaced with an exported global in ./shared.js 
