@@ -1,4 +1,4 @@
-﻿import type { UserInteractionStateMachine, Cubelet } from ".";
+﻿import type { InteractionState, Cubelet } from ".";
 import * as THREE from 'three';
 export class ComputationEngine { 
     constructor() {
@@ -16,15 +16,15 @@ export class ComputationEngine {
         return d * k;
     }
 
-    computeDragWorld(state: UserInteractionStateMachine): any {
-        return state.dragEndPoint.clone().sub(state.clickedOnPoint); 
+    computeDragWorld(state: InteractionState, point: any): any {
+        return point.clone().sub(state.clickedOnPoint); 
     }
 
-    computeInPlaneAxes(state: UserInteractionStateMachine): THREE.Vector3[] {
+    computeInPlaneAxes(state: InteractionState): THREE.Vector3[] {
         return this.axes.filter((_, i) => this.names[i] !== state.normalAxis);
     }
 
-    computeDragDir(state: UserInteractionStateMachine) { 
+    computeDragDir(state: InteractionState, dragWorld: any, inPlaneAxes: any) { 
         // want to compute the axis that's closest to the drag vector
         let best = null, bestDot = 0;
         for (const axis of inPlaneAxes) {
@@ -34,14 +34,14 @@ export class ComputationEngine {
         state.dragDir = best.clone().multiplyScalar(Math.sign(bestDot));
     }
 
-    computeDragDist(state: UserInteractionStateMachine) { 
+    computeDragDist(state: InteractionState, currentDragWorld: any) { 
         // convert the drag vector to a scalar representing distance of drag
         // the dot product takes the drag direction vector and applies it to the 
         // current drag vector to get a scalar distance 
         state.dragDistance = currentDragWorld.dot(state.dragDir);
     }
 
-    computeTurns(state: UserInteractionStateMachine) { 
+    computeTurns(state: InteractionState) { 
         return Math.round(this._dragAngle(state.dragDistance) / (Math.PI / 2));
     }
 
@@ -53,7 +53,20 @@ export class ComputationEngine {
         c.rubikPosition.sub(evil.center).applyQuaternion(q).add(evil.center); 
     }
 
-    computeRotationAxis(state: UserInteractionStateMachine) { 
+    computeQuaternion(state: InteractionState, angle: number): THREE.Quaternion { 
+        return new THREE.Quaternion().setFromAxisAngle(state.rotateAroundAxis, angle); 
+    }
+
+    computePreviewQuaternion(state: InteractionState, currentDragWorld: any): THREE.Quaternion { 
+        state.dragDistance = currentDragWorld.dot(state.dragDir);
+        let angle = _dragAngle(state.dragDistance);
+        // rotate just the pivot
+        // can't mutate the rubikPosition attributes on the cubelets
+        // the drag rotation is just a move preview 
+        return this.computeQuaternion(state, angle);
+    }
+
+    computeRotationAxis(state: InteractionState) { 
         let tempRotationAxis = state.worldNormal.clone().cross(state.dragDir);
 
         // this switch cleans up dust which accumulates from repeated cross products
@@ -76,7 +89,7 @@ export class ComputationEngine {
         state.rotateAroundAxis.multiplyScalar(Math.sign(tempRotationAxis[argmax]));
     }
 
-    computeLayerToRotate(state: UserInteractionStateMachine) { 
+    computeLayerToRotate(state: InteractionState, cube: any) { 
         // selecting the layer to rotate by picking the cubelets which are within 
         // a small threshold of the rotation axis 
         state.layerToRotate = cube.children
@@ -84,7 +97,7 @@ export class ComputationEngine {
                 - state.clickedOnCubeletPosition.dot(state.rotateAroundAxis)) < 1e-6) as evil.Cubelet[];
     }
 
-    correctPositionsAfterRotation(state: UserInteractionStateMachine) { 
+    correctPositionsAfterRotation(state: InteractionState) { 
         // need to snap the cubelets back to their proper coordinates in the cube lattice 
         state.layerToRotate.forEach((cubelet: evil.Cubelet) => cubelet
             .rubikPosition

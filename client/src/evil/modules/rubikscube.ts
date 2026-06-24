@@ -67,6 +67,7 @@ export class RubiksCube {
     visualize(scene: any) {
         //TODO handle non 3x3 cubes 
         var cube = new THREE.Group();
+        var children: any[] = [];
         let LINE_DISTANCE_FROM_CUBE_FILLET = 0.027;
         for (let i = 0; i < this.NUM_CUBELETS_PER_ROW; i++) {
             for (let j = 0; j < this.NUM_CUBELETS_PER_ROW; j++) {
@@ -120,7 +121,7 @@ export class RubiksCube {
                     cubeEdges.layers.set(1);
                     cubelet.add(cubeEdges);
                     cube.add(cubelet);
-                    this.cube.children.push(cubelet);
+                    //children.push(cubelet);
                     this.defaultCubeletFaceColors();
                 }
             }
