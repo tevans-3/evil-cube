@@ -17,7 +17,7 @@ import type * as Types from '../module_bindings/types';
 
 /* DATA ACCESS */
 
-const HOST = import.meta.env.SPACETIME_URI;
+/*const HOST = import.meta.env.SPACETIME_URI;
 const AUTH_TOKEN = import.meta.env.SPACETIME_AUTH_TOKEN;
 const DB_NAME = import.meta.env.SPACETIME_DB_NAME;
 
@@ -58,7 +58,7 @@ conn.db.cuber.onDelete((ctx, cuber) => {
 
 conn.db.cuber.onUpdate((ctx, cuber) => {
 
-});
+});*/
 
 let canvas: HTMLCanvasElement;
 
@@ -168,6 +168,7 @@ function gestureDownLogic(e: MouseEvent | TouchEvent, touched = false) {
 }
 
 function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
+    stateMachine.update("hovering");
     // REFACTOR 5 LINES BELOW TO: rubiks.setUpScenePreRotation(state, e, touched, canvas);
     evil._setPickPositionWrapper(e, touched, canvas); 
     rubiks.controls.enabled = true;

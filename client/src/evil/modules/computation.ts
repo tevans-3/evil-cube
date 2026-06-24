@@ -11,7 +11,7 @@ export class ComputationEngine {
             Math.abs(v - g) < Math.abs(v - b) ? g : b);
     }
 
-    _dragAngle(d: number) {
+    computeDragAngle(d: number) {
         let k = (Math.PI / 2) * 3;
         return d * k;
     }
@@ -41,8 +41,24 @@ export class ComputationEngine {
         state.dragDistance = currentDragWorld.dot(state.dragDir);
     }
 
+    computePrincipalComponent(v: any) {
+        var maxAxis = 'x',
+            max = Math.abs(v.x);
+
+        if (Math.abs(v.y) > max) {
+            maxAxis = 'y';
+            max = Math.abs(v.y);
+        }
+
+        if (Math.abs(v.z) > max) {
+            maxAxis = 'z';
+            max = Math.abs(v.z);
+        }
+        return maxAxis;
+    }
+
     computeTurns(state: InteractionState) { 
-        return Math.round(this._dragAngle(state.dragDistance) / (Math.PI / 2));
+        return Math.round(this.computeDragAngle(state.dragDistance) / (Math.PI / 2));
     }
 
     computeAngle(turns: number) { 
@@ -50,7 +66,7 @@ export class ComputationEngine {
     }
 
     computeQuaternionRotation(q: THREE.Quaternion, c: Cubelet, center: THREE.Vector3) { 
-        c.rubikPosition.sub(evil.center).applyQuaternion(q).add(evil.center); 
+        c.rubikPosition.sub(center).applyQuaternion(q).add(center); 
     }
 
     computeQuaternion(state: InteractionState, angle: number): THREE.Quaternion { 
@@ -59,7 +75,7 @@ export class ComputationEngine {
 
     computePreviewQuaternion(state: InteractionState, currentDragWorld: any): THREE.Quaternion { 
         state.dragDistance = currentDragWorld.dot(state.dragDir);
-        let angle = _dragAngle(state.dragDistance);
+        let angle = this.computeDragAngle(state.dragDistance);
         // rotate just the pivot
         // can't mutate the rubikPosition attributes on the cubelets
         // the drag rotation is just a move preview 
@@ -72,7 +88,7 @@ export class ComputationEngine {
         // this switch cleans up dust which accumulates from repeated cross products
         // the principal component won't return a clean axis vector, so we have to 
         // map it ourselves
-        let argmax = evil._principalComponent(tempRotationAxis);
+        let argmax = this.computePrincipalComponent(tempRotationAxis);
         switch (argmax) {
             case 'x':
                 state.rotateAroundAxis = new THREE.Vector3(1, 0, 0);
@@ -93,13 +109,13 @@ export class ComputationEngine {
         // selecting the layer to rotate by picking the cubelets which are within 
         // a small threshold of the rotation axis 
         state.layerToRotate = cube.children
-            .filter(c => Math.abs((c as evil.Cubelet).rubikPosition.dot(state.rotateAroundAxis)
-                - state.clickedOnCubeletPosition.dot(state.rotateAroundAxis)) < 1e-6) as evil.Cubelet[];
+            .filter(c => Math.abs((c as Cubelet).rubikPosition.dot(state.rotateAroundAxis)
+                - state.clickedOnCubeletPosition.dot(state.rotateAroundAxis)) < 1e-6) as Cubelet[];
     }
 
     correctPositionsAfterRotation(state: InteractionState) { 
         // need to snap the cubelets back to their proper coordinates in the cube lattice 
-        state.layerToRotate.forEach((cubelet: evil.Cubelet) => cubelet
+        state.layerToRotate.forEach((cubelet: Cubelet) => cubelet
             .rubikPosition
             .set(
                 this.snap(cubelet.rubikPosition.x),
