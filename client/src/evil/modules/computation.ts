@@ -1,4 +1,4 @@
-﻿import type { InteractionState, Cubelet } from ".";
+﻿import type { UserInteractionStateMachine, Cubelet } from ".";
 import * as THREE from 'three';
 export class ComputationEngine { 
     constructor() {
@@ -16,15 +16,15 @@ export class ComputationEngine {
         return d * k;
     }
 
-    computeDragWorld(state: InteractionState, point: any): any {
-        return point.clone().sub(state.clickedOnPoint); 
+    computeDragWorld(state: UserInteractionStateMachine): any {
+        return state.dragEndPoint.clone().sub(state.clickedOnPoint); 
     }
 
-    computeInPlaneAxes(state: InteractionState): THREE.Vector3[] {
+    computeInPlaneAxes(state: UserInteractionStateMachine): THREE.Vector3[] {
         return this.axes.filter((_, i) => this.names[i] !== state.normalAxis);
     }
 
-    computeDragDir(state: InteractionState, dragWorld: any, inPlaneAxes: any) { 
+    computeDragDir(state: UserInteractionStateMachine) { 
         // want to compute the axis that's closest to the drag vector
         let best = null, bestDot = 0;
         for (const axis of inPlaneAxes) {
@@ -34,7 +34,7 @@ export class ComputationEngine {
         state.dragDir = best.clone().multiplyScalar(Math.sign(bestDot));
     }
 
-    computeDragDist(state: InteractionState, currentDragWorld: any) { 
+    computeDragDist(state: UserInteractionStateMachine) { 
         // convert the drag vector to a scalar representing distance of drag
         // the dot product takes the drag direction vector and applies it to the 
         // current drag vector to get a scalar distance 
@@ -105,7 +105,7 @@ export class ComputationEngine {
         state.rotateAroundAxis.multiplyScalar(Math.sign(tempRotationAxis[argmax]));
     }
 
-    computeLayerToRotate(state: InteractionState, cube: any) { 
+    computeLayerToRotate(state: UserInteractionStateMachine) { 
         // selecting the layer to rotate by picking the cubelets which are within 
         // a small threshold of the rotation axis 
         state.layerToRotate = cube.children
@@ -113,7 +113,7 @@ export class ComputationEngine {
                 - state.clickedOnCubeletPosition.dot(state.rotateAroundAxis)) < 1e-6) as Cubelet[];
     }
 
-    correctPositionsAfterRotation(state: InteractionState) { 
+    correctPositionsAfterRotation(state: UserInteractionStateMachine) { 
         // need to snap the cubelets back to their proper coordinates in the cube lattice 
         state.layerToRotate.forEach((cubelet: Cubelet) => cubelet
             .rubikPosition
