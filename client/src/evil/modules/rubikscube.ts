@@ -120,7 +120,6 @@ export class RubiksCube {
                     cubeEdges.layers.set(1);
                     cubelet.add(cubeEdges);
                     cube.add(cubelet);
-                    this.cube.children.push(cubelet);
                     this.defaultCubeletFaceColors();
                 }
             }
