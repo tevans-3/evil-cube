@@ -127,15 +127,4 @@ export class RubiksCube {
         scene.add(cube); 
         return cube; 
     }
-
-    getCornerPermutationState() { 
-        return this.cube.children
-            .filter(c => c.isCorner == true)
-            .map(c => { c.cornerId, c.rubikPosition });
-    }
-
-    getCornerOrientationState() { 
-
-    }
-
 }

@@ -139,21 +139,14 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
 
             //TODO refactor below 6 lines (140 - 147) to: rubiks.setUpPivot(state, evil.center, pivot);
 
-            // have to attach the cubelets to a pivot parent object, whose only 
-            // purpose in life is to rotate cubelet layers 
-            pivot = new THREE.Object3D();
-            pivot.position.copy(evil.center);
-            rubiks.scene.add(pivot);
-
-            state.layerToRotate.forEach((cubelet: evil.Cubelet) => pivot.attach(cubelet));
+            rubiks.setUpPivot(state, evil.center);
             stateMachine.update("dragging");
         }
     }
     else if (stateMachine.dragging) {
         if (result) {
             const q = engine.computePreviewQuaternion(state, currentDragWorld);
-            pivot.quaternion.copy(q);
-            pivot.updateMatrixWorld(true);
+            rubiks.previewRotation(q);
         }
     }
 }
@@ -169,25 +162,16 @@ function gestureDownLogic(e: MouseEvent | TouchEvent, touched = false) {
 
 function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     stateMachine.update("hovering");
-    // REFACTOR 5 LINES BELOW TO: rubiks.setUpScenePreRotation(state, e, touched, canvas);
-    evil._setPickPositionWrapper(e, touched, canvas);
-    rubiks.controls.enabled = true;
-    if (!state.layerToRotate) {
-        state.reset(); return;
-    }
+    rubiks.setUpScenePreRotation(state, e, touched, canvas);
+
     const turns = engine.computeTurns(state);
     const angle = engine.computeAngle(turns);
     console.log(angle, turns);
     const q = engine.computeQuaternion(state, angle);
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
-    engine.correctPositionsAfterRotation(state);
 
-    // REFACTOR 5 LINES BELOW TO: rubiks.cleanUpSceneAfterRotation(state, q, cube, pivot);
-    pivot.quaternion.copy(q);
-    state.layerToRotate.forEach((cubelet: evil.Cubelet) => cube.attach(cubelet));
-    rubiks.scene.remove(pivot);
-    evil._clearPickPosition();
-    state.reset();
+    engine.correctPositionsAfterRotation(state);
+    rubiks.cleanUpSceneAfterRotation(state, q, cube);
 }
 
 /*  WE ARE EVENT LISTENERS!

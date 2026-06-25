@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import * as evil from '../shared.ts';
+import type { InteractionState, Cubelet, Cube } from ".";
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 export class ThreeScene {
     scene: THREE.Scene;
@@ -9,6 +11,7 @@ export class ThreeScene {
     canvas: any;
     time: number;
     controls: OrbitControls;
+    pivot: THREE.Object3D; 
     constructor() { 
         this.scene = new THREE.Scene(); 
         this.camera = new THREE.PerspectiveCamera(30, 
@@ -35,5 +38,36 @@ export class ThreeScene {
         this.controls.target.set(0, 0, 0);
         this.renderer.setSize(window.innerWidth, window.innerHeight); 
         document.body.appendChild(this.renderer.domElement); 
+    }
+
+    setUpScenePreRotation(state: InteractionState, e: MouseEvent | TouchEvent, touched: boolean, canvas: HTMLCanvasElement) { 
+        evil._setPickPositionWrapper(e, touched, canvas);
+        this.controls.enabled = true;
+        if (!state.layerToRotate) {
+            state.reset(); return;
+        }
+    }
+
+    cleanUpSceneAfterRotation(state: InteractionState, q: THREE.Quaternion, cube: THREE.Object3D) { 
+        this.pivot.quaternion.copy(q);
+        state.layerToRotate.forEach((cubelet: Cubelet) => cube.attach(cubelet));
+        this.scene.remove(this.pivot);
+        evil._clearPickPosition();
+        state.reset();
+    }
+
+    setUpPivot(state: InteractionState, center: THREE.Vector3) { 
+        // have to attach the cubelets to a pivot parent object, whose only 
+        // purpose in life is to rotate cubelet layers 
+        this.pivot = new THREE.Object3D();
+        this.pivot.position.copy(evil.center);
+        this.scene.add(this.pivot);
+
+        state.layerToRotate.forEach((cubelet: Cubelet) => this.pivot.attach(cubelet));
+    }
+
+    previewRotation(q: THREE.Quaternion) { 
+        this.pivot.quaternion.copy(q);
+        this.pivot.updateMatrixWorld(true);
     }
 }
