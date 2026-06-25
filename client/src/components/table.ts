@@ -3,9 +3,10 @@
     cell: (row: T) => string | Node; 
 }
 
-export function Table<T>(rows: T[], columns: Column<T>[]) { 
+export function Table<T>(rows: T[], columns: Column<T>[], id: string) { 
     const table = document.createElement("table"); 
     const hrow = table.createTHead().insertRow(); 
+    table.id = id; 
     for (const col of columns) { 
         const th = document.createElement("th"); 
         th.textContent = col.header; 

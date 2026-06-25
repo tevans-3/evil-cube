@@ -17,13 +17,16 @@ import type * as Types from '../module_bindings/types';
 
 /* DATA ACCESS */
 
-/*const HOST = import.meta.env.SPACETIME_URI;
-const AUTH_TOKEN = import.meta.env.SPACETIME_AUTH_TOKEN;
-const DB_NAME = import.meta.env.SPACETIME_DB_NAME;
-
+const HOST = import.meta.env.VITE_SPACETIME_URI;
+const DB_NAME = import.meta.env.VITE_SPACETIME_DB_NAME;
+const URI = import.meta.env.VITE_SPACETIME_URI;
+const AUTH_TOKEN = `${HOST}/${DB_NAME}/token`;
+const SAVED_TOKEN = localStorage.getItem(AUTH_TOKEN);
+console.log(HOST, DB_NAME, URI);
 const conn = DbConnection.builder()
-    .withUri(HOST)
+    .withUri(URI)
     .withDatabaseName(DB_NAME)
+    .withToken(SAVED_TOKEN ?? "")
     .onConnect((conn, identity, token) => {
         console.log(`Connected! Identity: ${identity.toHexString()}`);
         localStorage.setItem(AUTH_TOKEN, token);
@@ -58,7 +61,7 @@ conn.db.cuber.onDelete((ctx, cuber) => {
 
 conn.db.cuber.onUpdate((ctx, cuber) => {
 
-});*/
+});
 
 let canvas: HTMLCanvasElement;
 
@@ -71,7 +74,7 @@ var stateMachine = new evil.UserInteractionStateMachine();
 
 let rubiks = new evil.ThreeScene();
 let cameraPosition = new THREE.Vector3(3, 5, 3);
-rubiks.init('Black', cameraPosition, 1);
+rubiks.init('White', cameraPosition, 1);
 
 let cubeInit = new evil.RubiksCube("");
 let cube = cubeInit.visualize(rubiks.scene);
@@ -161,6 +164,7 @@ function gestureDownLogic(e: MouseEvent | TouchEvent, touched = false) {
 }
 
 function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
+    if (!stateMachine.dragging) return;
     stateMachine.update("hovering");
     rubiks.setUpScenePreRotation(state, e, touched, canvas);
 
