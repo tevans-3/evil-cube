@@ -45,6 +45,8 @@ pub const MOVES: [Move; 18] = [
     Move { cp: [2, 1, 6, 3, 0, 5, 4, 7], co: [1, 0, 2, 0, 2, 0, 1, 0] }, // B'
 ];
 
+
+
 #[table(accessor = cuber, public)]
 pub struct Cuber { 
 	#[primary_key] 
@@ -52,10 +54,46 @@ pub struct Cuber {
 	verified: bool, // verified == consenting human participant solving cube synchronously under supervision, or agent
 	is_human: bool, // this is not a verdict on the cuber's humanity; it just indicates if the solver is an agent
 	name: String, // I recommend Gregor Samsa, but they can pick anything they like 
+	#[index(btree)]
 	best_score_movect: u32, 
 	best_score_singmaster: String,
 	distance_to_solve: u64,
 	state: State,
+}
+
+#[derive(SpacetimeType)]
+pub struct CuberView { 
+	name: String, 
+	score: u32, 
+	singmaster: String, 
+}
+
+#[view(accessor = top_scorers, public)] 
+fn top_scorers(ctx: &AnonymousViewContext) -> Vec<CuberView> { 
+	ctx.db
+		.cuber()
+		.best_score_movect()
+		.filter(..=2u32)
+		.map(|cuber| { 
+			CuberView { 
+				name: cuber.name, 
+				score: cuber.best_score_movect, 
+				singmaster: cuber.best_score_singmaster, 
+			}
+		})
+		.collect() 
+		/*.flat_map(|cuber| 
+				ctx.db
+				   .cuber()
+				   .identity() 
+				   .find(cuber.identity) 
+				   .map(|c| CuberView { 
+						name: c.name, 
+						score: c.best_score_movect, 
+						singmaster: c.best_score_singmaster,
+				   })
+		)
+		.collect()*/
 }
 
 #[reducer(client_connected)] 

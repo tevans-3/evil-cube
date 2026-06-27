@@ -22,7 +22,6 @@ const DB_NAME = import.meta.env.VITE_SPACETIME_DB_NAME;
 const URI = import.meta.env.VITE_SPACETIME_URI;
 const AUTH_TOKEN = `${HOST}/${DB_NAME}/token`;
 const SAVED_TOKEN = localStorage.getItem(AUTH_TOKEN);
-console.log(HOST, DB_NAME, URI);
 const conn = DbConnection.builder()
     .withUri(URI)
     .withDatabaseName(DB_NAME)
@@ -33,11 +32,11 @@ const conn = DbConnection.builder()
         conn.subscriptionBuilder()
             .onApplied(ctx => {
                 console.log(`Ready with ${ctx.db.cuber.count()} cubers`);
-
+                console.log(Array.from(ctx.db.top_scorers.iter()));
                 const leaderboard = Table<Types.CuberView>(Array.from(ctx.db.top_scorers.iter()),
-                    [{ header: "NAME",   cell: c => c.name },
-                     { header: "SCORE",  cell: c => c.score.toString() }, 
-                     { header: "REPLAY", cell: c => ReplayButton(c.singmaster, replay(c.singmaster))}
+                    [{ header: "NAME", cell: c => c.name },
+                     { header: "SCORE", cell: c => c.score.toString() },
+                     { header: "REPLAY", cell: c => "" },//ReplayButton(c.singmaster, replay(c.singmaster)) }
                     ], "leaderboard");
                 document.body.append(leaderboard);
             })
