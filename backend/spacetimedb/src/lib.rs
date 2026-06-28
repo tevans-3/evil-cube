@@ -1,6 +1,10 @@
 use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp, 
-					view, ViewContext, AnonymousViewContext, SpacetimeType}; 
+					view, ViewContext, AnonymousViewContext, SpacetimeType, rand::Rng}; 
 use std::collections::VecDeque; 
+
+mod username_words;
+pub const adjectives: [&str; 237] = username_words::ADJECTIVES; 
+pub const nouns: [&str; 247]     = username_words::NOUNS; 
 
 pub const UNVISITED: u8 = u8::MAX; 
 
@@ -51,6 +55,8 @@ pub const MOVES: [Move; 18] = [
 pub struct Cuber { 
 	#[primary_key] 
 	identity: Identity, 
+	#[auto_inc] 
+	disc: u64,
 	verified: bool, // verified == consenting human participant solving cube synchronously under supervision, or agent
 	is_human: bool, // this is not a verdict on the cuber's humanity; it just indicates if the solver is an agent
 	name: String, // I recommend Gregor Samsa, but they can pick anything they like 
@@ -82,32 +88,40 @@ fn top_scorers(ctx: &AnonymousViewContext) -> Vec<CuberView> {
 			}
 		})
 		.collect() 
-		/*.flat_map(|cuber| 
-				ctx.db
-				   .cuber()
-				   .identity() 
-				   .find(cuber.identity) 
-				   .map(|c| CuberView { 
-						name: c.name, 
-						score: c.best_score_movect, 
-						singmaster: c.best_score_singmaster,
-				   })
-		)
-		.collect()*/
+}
+
+fn generate_username(adj_idx1: u32, adj_idx2: u32, noun_idx: u32) -> String { 
+	let first_adjective  = adjectives[adj_idx1 as usize]; 
+	let second_adjective = adjectives[adj_idx2 as usize];  
+	let noun = nouns[noun_idx as usize]; 
+	let mut username = String::new(); 
+	username.push_str(first_adjective); 
+	username.push_str("-");  
+	username.push_str(second_adjective); 
+	username.push_str("-"); 
+	username.push_str(noun); 
+	username
 }
 
 #[reducer(client_connected)] 
 pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> { 
+	let adj_idx1 = ctx.rng().gen_range(0..237); 
+	let adj_idx2 = ctx.rng().gen_range(0..237); 
+	let noun_idx = ctx.rng().gen_range(0..247); 
+	let username = generate_username(adj_idx1, adj_idx2, noun_idx); 
+
 	ctx.db.cuber().insert(Cuber { 
 		identity: ctx.sender(), 
+		disc: 0,
 		verified: false, 
 		is_human: true, 
-		name:String::new(), 
+		name:username, 
 		best_score_movect: 0, 
 		best_score_singmaster: String::new(), 
 		distance_to_solve: 88179840, 
 		state: State { cp: vec![0,1,2,3,4,5,6,7], co: vec![0,0,0,0,0,0,0,0] },
 	}); 
+
 	Ok(())
 }
 

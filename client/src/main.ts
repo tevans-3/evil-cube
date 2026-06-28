@@ -1,6 +1,7 @@
 import * as evil from './evil/api.ts';
 import { Table } from './components/table.ts';
 import { ReplayButton, replay } from './components/replay.ts';
+import { Card } from './components/card.ts';
 import * as THREE from 'three';
 import { DbConnection, tables } from '../module_bindings';
 import { Identity, Timestamp } from 'spacetimedb';
@@ -21,7 +22,7 @@ const HOST = import.meta.env.VITE_SPACETIME_URI;
 const DB_NAME = import.meta.env.VITE_SPACETIME_DB_NAME;
 const URI = import.meta.env.VITE_SPACETIME_URI;
 const AUTH_TOKEN = `${HOST}/${DB_NAME}/token`;
-const SAVED_TOKEN = localStorage.getItem(AUTH_TOKEN);
+const SAVED_TOKEN = localStorage.getItem(AUTH_TOKEN); console.log(SAVED_TOKEN);
 const conn = DbConnection.builder()
     .withUri(URI)
     .withDatabaseName(DB_NAME)
@@ -38,7 +39,9 @@ const conn = DbConnection.builder()
                      { header: "SCORE", cell: c => c.score.toString() },
                      { header: "REPLAY", cell: c => "" },//ReplayButton(c.singmaster, replay(c.singmaster)) }
                     ], "leaderboard");
-                document.body.append(leaderboard);
+                const card = Card("leaderboard-card"); 
+                card.append(leaderboard); 
+                document.body.appendChild(card);
             })
             .subscribe([tables.cuber, "SELECT * FROM top_scorers"]);
     })
@@ -117,7 +120,6 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
 
         // these magic numbers correspond to a fraction of cube size
         // basically we want to only transition from PICKED -> DRAGGING
-
         // when the gesture has dragged a reasonable distance, which
         // prevents arbitrarily small drag distances from triggering a state 
         // change; 1/3 should be replaced with an exported global in ./shared.js 
@@ -138,8 +140,6 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
             engine.computeRotationAxis(state);
             engine.computeLayerToRotate(state, cube);
             engine.computeDragDist(state, currentDragWorld);
-
-            //TODO refactor below 6 lines (140 - 147) to: rubiks.setUpPivot(state, evil.center, pivot);
 
             rubiks.setUpPivot(state, evil.center);
             stateMachine.update("dragging");
@@ -169,10 +169,14 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
 
     const turns = engine.computeTurns(state);
     const angle = engine.computeAngle(turns);
-    console.log(angle, turns);
+     
     const q = engine.computeQuaternion(state, angle);
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
 
+    const move = engine.computeMove(state, angle);
+    //if (move == null) return; 
+    //const result = conn.reducers.applyMove(move); 
+    //console.log(result);
     engine.correctPositionsAfterRotation(state);
     rubiks.cleanUpSceneAfterRotation(state, q, cube);
 }

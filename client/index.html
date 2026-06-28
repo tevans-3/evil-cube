@@ -6,9 +6,6 @@
     <style>
         body {
             margin: 0;
-            width: 100%;
-            height: 100%;
-            position: absolute;
             background-color: white;
         }
     </style>
@@ -34,10 +31,21 @@
         width: 2em;
         transform: translateX(-75%);
     }
-    #leaderboard { 
-        position: absolute; 
-        top: 0; 
-        left: 95%; 
+    #leaderboard {
+        position: absolute;
+        top: 0;
+        left: 95%;
         width: 1em;
+        border-collapse: collapse;
+    }
+    #leaderboard-card {
+        position: absolute;
+        top: 0; 
+        left: 95%;
+        border: 1px solid #999999;
+        border-radius: 3px;
+        display: grid;
+        grid-template-rows: max-content 300px 1fr;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
     }
 </style>

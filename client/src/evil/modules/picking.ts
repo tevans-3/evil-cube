@@ -41,7 +41,7 @@ export class PickHelper {
             // of the cube's axes, of the face's in-plane axes, the face normal 
             // is the only out-of-plane axis (it's perpendicular)
             this.faceNormal = intersectedObjects[0].face.normal;
-            console.log(this.pickedObject);
+            
             // this is the clicked-on point, intersected by the camera's ray 
             this.point = intersectedObjects[0].point.clone(); 
 
@@ -72,7 +72,7 @@ export class PickHelper {
             // the principal component gives us the largest magnitude component (axis), 
             // which is the component nearest to 1, in other words, the most nearly parallel
             const axis = _principalComponent(worldNormal);
-
+            
             // the sign gives us which specific face e.g. +X or -X 
             const side = Math.sign(worldNormal[axis]);
 
