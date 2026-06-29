@@ -1,6 +1,7 @@
-use spacetimedb::{table, reducer, Table, ReducerContext, Identity, Timestamp, 
-					view, ViewContext, AnonymousViewContext, SpacetimeType, rand::Rng}; 
+use spacetimedb::{table, reducer, Table, ReducerContext, ProcedureContext, Identity, Timestamp, 
+					view, ViewContext, AnonymousViewContext, SpacetimeType, rand::Rng, ScheduleAt}; 
 use std::collections::VecDeque; 
+use std::time::Duration;
 
 mod username_words;
 pub const adjectives: [&str; 237] = username_words::ADJECTIVES; 
@@ -59,7 +60,7 @@ pub struct Cuber {
 	disc: u64,
 	verified: bool, // verified == consenting human participant solving cube synchronously under supervision, or agent
 	is_human: bool, // this is not a verdict on the cuber's humanity; it just indicates if the solver is an agent
-	name: String, // I recommend Gregor Samsa, but they can pick anything they like 
+	name: String,   // I recommend Gregor Samsa, but they can pick anything they like 
 	#[index(btree)]
 	best_score_movect: u32, 
 	best_score_singmaster: String,
@@ -109,6 +110,10 @@ pub fn client_connected(ctx: &ReducerContext) -> Result<(), String> {
 	let adj_idx2 = ctx.rng().gen_range(0..237); 
 	let noun_idx = ctx.rng().gen_range(0..247); 
 	let username = generate_username(adj_idx1, adj_idx2, noun_idx); 
+
+	if let Some(cuber) = ctx.db.cuber().identity().find(ctx.sender()) { 
+		return Ok(());
+	}
 
 	ctx.db.cuber().insert(Cuber { 
 		identity: ctx.sender(), 
@@ -185,7 +190,7 @@ impl BreadthFirstCornerSearcher {
 	}
 }
 
-#[derive(SpacetimeType)]
+#[derive(SpacetimeType, Clone)]
 pub struct DbStorage { 
 	store: Vec<u8>, 
 } 
@@ -234,22 +239,43 @@ impl DbStorage {
 	}
 }
 
-
 #[table(accessor = cornerpdb, public)] 
 struct CornerPatternDatabase { 
 	pdb_identity: Identity,
 	pdb: Box<DbStorage>,
 }
 
-#[reducer(init)] 
-pub fn init_cpdb(ctx: &ReducerContext) { 
+#[spacetimedb::table(accessor = generate_cpdb_schedule, scheduled(generate_cpdb))] 
+pub struct GenerateCpdbSchedule { 
+	#[primary_key] 
+	#[auto_inc] 
+	scheduled_id: u64, 
+	scheduled_at: ScheduleAt, 
+}
+ 
+#[spacetimedb::procedure] 
+pub fn generate_cpdb(ctx: &mut ProcedureContext, schedule: GenerateCpdbSchedule) { 
 	let mut cpdb: Box<DbStorage> = Box::new(DbStorage::new()); 
+	log::info!("gen: started"); 
 	let mut BFS = BreadthFirstCornerSearcher::new(); 
-	BFS.perform_bfs(State { cp: vec![0,1,2,3,4,5,6,7], co: vec![0,0,0,0,0,0,0,0] }, &mut cpdb); 
-	ctx.db.cornerpdb().insert(CornerPatternDatabase {
+	log::info!("gen: done"); 
+
+	log::info!("insertion: started"); 
+	ctx.with_tx(|ctx| {
+		ctx.db.cornerpdb().insert(CornerPatternDatabase {
 		pdb_identity: ctx.sender(),
-		pdb: cpdb, 
+		pdb: cpdb.clone(), 
+		})
 	});
+	log::info!("insertion: finished"); 
+}
+
+#[reducer(init)] 
+pub fn init(ctx: &ReducerContext) { 
+	ctx.db.generate_cpdb_schedule().insert(GenerateCpdbSchedule { 
+		scheduled_id: 0,
+		scheduled_at: ScheduleAt::Time(ctx.timestamp), 
+	}); 
 }
 
 #[reducer] 

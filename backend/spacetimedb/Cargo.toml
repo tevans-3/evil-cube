@@ -9,6 +9,6 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-spacetimedb = { version = "2.5.*" }
+spacetimedb = { version = "2.5.*", features = ["unstable"] }
 log = "0.4"
 bit-set = "0.10.0"

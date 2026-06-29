@@ -174,8 +174,8 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
 
     const move = engine.computeMove(state, angle);
-    //if (move == null) return; 
-    //const result = conn.reducers.applyMove(move); 
+    if (move == null) return; 
+    const result = conn.reducers.applyMove(move); 
     //console.log(result);
     engine.correctPositionsAfterRotation(state);
     rubiks.cleanUpSceneAfterRotation(state, q, cube);
