@@ -36,3 +36,6 @@ backend/node_modules
 backend/spacetime.json 
 backend/spacetime.local.json 
 backend/.windsurfrules
+
+*.bin
+/target
