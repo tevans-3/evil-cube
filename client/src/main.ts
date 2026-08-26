@@ -1,11 +1,5 @@
 import * as evil from './evil/api.ts';
-import { Table } from './components/table.ts';
-import { ReplayButton, replay } from './components/replay.ts';
-import { Card } from './components/card.ts';
 import * as THREE from 'three';
-import { DbConnection, tables } from '../module_bindings';
-import { Identity, Timestamp } from 'spacetimedb';
-import type * as Types from '../module_bindings/types';
 
 // CITATIONS
 //
@@ -14,57 +8,18 @@ import type * as Types from '../module_bindings/types';
 // 3. https://cs.stanford.edu/people/karpathy/reinforcejs/
 // 4. Asked Claude Opus 4.8 (browser chat) some debugging and conceptual questions (OOP refactor, rotation math and APIs)
 // 5. https://stackoverflow.com/questions/500221/how-would-you-represent-a-rubiks-cube-in-code\
-// 6. SpacetimeDB documentation
 
-/* DATA ACCESS */
+const fs = require('fs') 
+const readStream = fs.createReadStream('file.bin', { highWaterMark: 64 * 1024 }); 
 
-const HOST = import.meta.env.VITE_SPACETIME_URI;
-const DB_NAME = import.meta.env.VITE_SPACETIME_DB_NAME;
-const URI = import.meta.env.VITE_SPACETIME_URI;
-const AUTH_TOKEN = `${HOST}/${DB_NAME}/token`;
-const SAVED_TOKEN = localStorage.getItem(AUTH_TOKEN); console.log(SAVED_TOKEN);
-const conn = DbConnection.builder()
-    .withUri(URI)
-    .withDatabaseName(DB_NAME)
-    .withToken(SAVED_TOKEN ?? "")
-    .onConnect((conn, identity, token) => {
-        console.log(`Connected! Identity: ${identity.toHexString()}`);
-        localStorage.setItem(AUTH_TOKEN, token);
-        conn.subscriptionBuilder()
-            .onApplied(ctx => {
-                console.log(`Ready with ${ctx.db.cuber.count()} cubers`);
-                console.log(Array.from(ctx.db.top_scorers.iter()));
-                const leaderboard = Table<Types.CuberView>(Array.from(ctx.db.top_scorers.iter()),
-                    [{ header: "NAME", cell: c => c.name },
-                     { header: "SCORE", cell: c => c.score.toString() },
-                     { header: "REPLAY", cell: c => "" },//ReplayButton(c.singmaster, replay(c.singmaster)) }
-                    ], "leaderboard");
-                const card = Card("leaderboard-card"); 
-                card.append(leaderboard); 
-                document.body.appendChild(card);
-            })
-            .subscribe([tables.cuber, "SELECT * FROM top_scorers"]);
-    })
-    .onConnectError((_ctx, error) => {
-        console.error(`Connection failed:`, error);
-    })
-    .onDisconnect(() => {
-        console.log(`Disconnected from SpacetimeDB`);
-    })
-    .build();
 
-conn.db.cuber.onInsert((ctx, cuber) => {
-
-}); 
-
-conn.db.cuber.onDelete((ctx, cuber) => {
-
-});
-
-conn.db.cuber.onUpdate((ctx, cuber) => {
-
-});
-
+// NEED:  
+//       apply move to cuber's current state (stored in the browser, no authoritative validation, FIWB) 
+//       hash and compute index, if index > len(bin blob), it's nowhere near solved 
+//                               else, seek that range, skipping chunks until you locate where that index should sit, then load that chunk 
+        //                               if it's less than threshold, YEET 
+// 
+    
 let canvas: HTMLCanvasElement;
 
 const debug = false;
@@ -73,7 +28,6 @@ var state = new evil.InteractionState();
 var stateMachine = new evil.UserInteractionStateMachine();
 
 /*   DRIVER CODE   */
-
 let rubiks = new evil.ThreeScene();
 let cameraPosition = new THREE.Vector3(3, 5, 3);
 rubiks.init('White', cameraPosition, 1);
@@ -95,7 +49,6 @@ if (debug) {
     // X == red, Y == green, Z == blue
     const axesHelper = new THREE.AxesHelper(5); rubiks.scene.add(axesHelper);
 }
-
 
 rubiks.renderer.setAnimationLoop(animate);
 
@@ -175,8 +128,7 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
 
     const move = engine.computeMove(state, angle);
     if (move == null) return; 
-    const result = conn.reducers.applyMove(move); 
-    //console.log(result);
+    //const result = conn.reducers.applyMove(move); 
     engine.correctPositionsAfterRotation(state);
     rubiks.cleanUpSceneAfterRotation(state, q, cube);
 }
