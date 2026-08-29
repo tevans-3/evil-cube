@@ -3,7 +3,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path'; 
 import * as THREE from 'three';
 
-DATABASE_FILE = 'pruned_cpdb_d6.bin'; 
 // CITATIONS
 //
 // 1. THREE.js documentation
@@ -11,45 +10,6 @@ DATABASE_FILE = 'pruned_cpdb_d6.bin';
 // 3. https://cs.stanford.edu/people/karpathy/reinforcejs/
 // 4. Asked Claude Opus 4.8 (browser chat) some debugging and conceptual questions (OOP refactor, rotation math and APIs)
 // 5. https://stackoverflow.com/questions/500221/how-would-you-represent-a-rubiks-cube-in-code\
-
-
-/* ADVERSARY MODULE */ 
-const filePath = path.join(__dirname, DATABASE_FILE); 
-
-async function readDatabaseFile(filePath: string): Promise<Buffer> { 
-    try { 
-        const buffer: Buffer = await fs.readFile(filePath); 
-        return new Uint8Array(buffer);  
-    } catch (error) { 
-        console.error('Failed to read binary file: ', error); 
-        throw error; 
-    }
-}
-
-lookUpHowManyMovesLeft(move: Move): Uint8 {  
-    const index = computeIndex(move);
-    try { 
-        return this.cpdb[index]; 
-    } catch (error) { 
-        console.log('>= 6 moves away from a solve.');
-        return null; 
-    }
-}
-
-handleMove(move: Move, cube: RubiksCube): Boolean { 
-    almostSolved = lookUpHowManyMovesLeft(move); 
-    scrambleAllowed = this.checkScrambleBudget();  
-    if (almostSolved && scrambleAllowed) { 
-        scramble(cube); 
-    }
-}
-
-scramble(cube: RubiksCube) { 
-}
-
-
-
- 
 
 
 // NEED:  
@@ -168,7 +128,6 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
 
     const move = engine.computeMove(state, angle);
-    //const result = conn.reducers.applyMove(move); 
     engine.correctPositionsAfterRotation(state);
     rubiks.cleanUpSceneAfterRotation(state, q, cube);
 }

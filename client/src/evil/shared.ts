@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+export const DATABASE_FILE = "pruned_cpdb_d6.bin";
+
 export const LAYER_ID = {
     '["cubelet_020","cubelet_021","cubelet_022","cubelet_120","cubelet_121","cubelet_122","cubelet_220","cubelet_221","cubelet_222"]': 0,
     '["cubelet_000","cubelet_001","cubelet_002","cubelet_100","cubelet_101","cubelet_102","cubelet_200","cubelet_201","cubelet_202"]': 1,
