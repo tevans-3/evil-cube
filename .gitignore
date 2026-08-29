@@ -39,3 +39,4 @@ backend/.windsurfrules
 
 *.bin
 /target
+/pdb/target
