@@ -17,8 +17,8 @@ export class ThreeScene {
         this.camera = new THREE.PerspectiveCamera(30, 
             window.innerWidth / window.innerHeight); 
         this.renderer = new THREE.WebGLRenderer({ antialias: true }); 
-        this.ambientLight = new THREE.AmbientLight('white', 2.5);
-        this.light = new THREE.DirectionalLight('white', 3); 
+        this.ambientLight = new THREE.AmbientLight('white', 3); 
+        this.light = new THREE.DirectionalLight('white', 2);
         this.canvas = this.renderer.domElement; 
         this.time = 1; 
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -41,7 +41,8 @@ export class ThreeScene {
         this.controls.target.set(0, 0, 0);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.shadowMap.enabled = true; 
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        this.renderer.shadowMap.type = THREE.PCFShadowMap;
+        this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio)); 
         document.body.appendChild(this.renderer.domElement); 
     }
 

@@ -1,6 +1,9 @@
 import * as evil from './evil/api.ts';
+import * as fs from 'fs/promises'; 
+import * as path from 'path'; 
 import * as THREE from 'three';
 
+DATABASE_FILE = 'pruned_cpdb_d6.bin'; 
 // CITATIONS
 //
 // 1. THREE.js documentation
@@ -9,8 +12,44 @@ import * as THREE from 'three';
 // 4. Asked Claude Opus 4.8 (browser chat) some debugging and conceptual questions (OOP refactor, rotation math and APIs)
 // 5. https://stackoverflow.com/questions/500221/how-would-you-represent-a-rubiks-cube-in-code\
 
-//const fs = require('fs') 
-//const readStream = fs.createReadStream('file.bin', { highWaterMark: 64 * 1024 }); 
+
+/* ADVERSARY MODULE */ 
+const filePath = path.join(__dirname, DATABASE_FILE); 
+
+async function readDatabaseFile(filePath: string): Promise<Buffer> { 
+    try { 
+        const buffer: Buffer = await fs.readFile(filePath); 
+        return new Uint8Array(buffer);  
+    } catch (error) { 
+        console.error('Failed to read binary file: ', error); 
+        throw error; 
+    }
+}
+
+lookUpHowManyMovesLeft(move: Move): Uint8 {  
+    const index = computeIndex(move);
+    try { 
+        return this.cpdb[index]; 
+    } catch (error) { 
+        console.log('>= 6 moves away from a solve.');
+        return null; 
+    }
+}
+
+handleMove(move: Move, cube: RubiksCube): Boolean { 
+    almostSolved = lookUpHowManyMovesLeft(move); 
+    scrambleAllowed = this.checkScrambleBudget();  
+    if (almostSolved && scrambleAllowed) { 
+        scramble(cube); 
+    }
+}
+
+scramble(cube: RubiksCube) { 
+}
+
+
+
+ 
 
 
 // NEED:  
@@ -32,7 +71,8 @@ let rubiks = new evil.ThreeScene();
 let cameraPosition = new THREE.Vector3(3, 5, 3);
 rubiks.init('White', cameraPosition, 1);
 
-let cubeInit = new evil.RubiksCube("");
+let maxAnisotropy = rubiks.renderer.capabilities.getMaxAnisotropy(); 
+let cubeInit = new evil.RubiksCube(maxAnisotropy);
 let cube = cubeInit.visualize(rubiks.scene);
 canvas = rubiks.canvas;
 
