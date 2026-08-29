@@ -9,8 +9,8 @@ import * as THREE from 'three';
 // 4. Asked Claude Opus 4.8 (browser chat) some debugging and conceptual questions (OOP refactor, rotation math and APIs)
 // 5. https://stackoverflow.com/questions/500221/how-would-you-represent-a-rubiks-cube-in-code\
 
-const fs = require('fs') 
-const readStream = fs.createReadStream('file.bin', { highWaterMark: 64 * 1024 }); 
+//const fs = require('fs') 
+//const readStream = fs.createReadStream('file.bin', { highWaterMark: 64 * 1024 }); 
 
 
 // NEED:  
@@ -87,7 +87,7 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
             state.dragEndPoint = intersectionPoint;
             // the current drag, difference between the current cursor position and 
             // the hit point 
-            const dragWorld = engine.computeDragWorld(state, state.dragEndPoint); //state.dragEndPoint.clone().sub(state.clickedOnPoint);
+            const dragWorld = engine.computeDragWorld(state, state.dragEndPoint);//.clone().sub(state.clickedOnPoint));
             let inPlaneAxes = engine.computeInPlaneAxes(state);
             engine.computeDragDir(state, dragWorld, inPlaneAxes);
             engine.computeRotationAxis(state);
@@ -102,6 +102,7 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
         if (result) {
             const q = engine.computePreviewQuaternion(state, currentDragWorld);
             rubiks.previewRotation(q);
+
         }
     }
 }
@@ -127,7 +128,6 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
 
     const move = engine.computeMove(state, angle);
-    if (move == null) return; 
     //const result = conn.reducers.applyMove(move); 
     engine.correctPositionsAfterRotation(state);
     rubiks.cleanUpSceneAfterRotation(state, q, cube);
@@ -172,4 +172,8 @@ window.addEventListener('touchmove', (event) => {
 window.addEventListener('touchend', (event) => {
     event.preventDefault();
     gestureUpLogic(event, true);
+});
+
+window.addEventListener('resize', (_) => { 
+    evil._handleWindowResize(rubiks.camera, rubiks.renderer, window);  
 }); 

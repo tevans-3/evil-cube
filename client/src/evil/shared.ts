@@ -119,10 +119,20 @@ export function _setPickPosition(event: MouseEvent | Touch, canvas: HTMLCanvasEl
     pickPosition.y = (pos.y / canvas.height) * -2 + 1;
 }
 export function _clearPickPosition() {
-    pickPosition.x = -100000;
-    pickPosition.y = -100000;
+    pickPosition.x = -10000;
+    pickPosition.y = -10000;
 }
 export function _setPickPositionWrapper(e: MouseEvent | TouchEvent, touched: boolean, canvas: HTMLCanvasElement) {
-    if (touched) _setPickPosition((e as TouchEvent).touches[0], canvas);
+    if (touched) { 
+        const touch = (e as TouchEvent).touches[0] || (e as TouchEvent).changedTouches[0];
+        _setPickPosition(touch, canvas); 
+    }
     else _setPickPosition(e as MouseEvent, canvas);
 }
+export function _handleWindowResize(camera: any, renderer: any) {  
+    camera.aspect = window.innerWidth / window.innerHeight; 
+    camera.updateProjectionMatrix(); 
+    renderer.setSize(window.innerWidth, window.innerHeight); 
+} 
+
+
