@@ -1,5 +1,5 @@
 ﻿import type { InteractionState, Cubelet } from ".";
-import { LAYER_ID, MOVES, MOVE_INDEXES } from "../shared.ts";
+import { LAYER_ID, MOVE_NAMES, MOVES } from "../shared.ts";
 import * as THREE from 'three';
 export class ComputationEngine {
     constructor() {
@@ -137,8 +137,8 @@ export class ComputationEngine {
         const axis = state.normalAxis; 
         const sign = new THREE.Vector3(1, 1, 1,).dot(state.rotateAroundAxis);
         const key = `${sign}, ${angle.toFixed(6)}, ${axis}, ${layerId}`; 
-        const move = MOVES[key] ?? null; 
-        //console.log(move, layer, axis, sign);
-        return MOVE_INDEXES[move] ?? null; 
+        const move_name = MOVE_NAMES[key] ?? null; 
+        //console.log(move_name, layer, axis, sign);
+        return MOVES[move_name] ?? null; 
     }
 }

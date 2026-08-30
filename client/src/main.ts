@@ -1,6 +1,4 @@
 import * as evil from './evil/api.ts';
-import * as fs from 'fs/promises'; 
-import * as path from 'path'; 
 import * as THREE from 'three';
 
 // CITATIONS
@@ -18,7 +16,7 @@ import * as THREE from 'three';
 //                               else, seek that range, skipping chunks until you locate where that index should sit, then load that chunk 
         //                               if it's less than threshold, YEET 
 // 
-    
+
 let canvas: HTMLCanvasElement;
 
 const debug = false;
@@ -33,7 +31,8 @@ rubiks.init('White', cameraPosition, 1);
 
 let maxAnisotropy = rubiks.renderer.capabilities.getMaxAnisotropy(); 
 let cubeInit = new evil.RubiksCube(maxAnisotropy);
-let cube = cubeInit.visualize(rubiks.scene);
+let cube = cubeInit.visualize(rubiks.scene); 
+let adversary = new evil.Adversary(); 
 canvas = rubiks.canvas;
 
 evil._clearPickPosition();
@@ -107,15 +106,19 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
     }
 }
 
-function gestureDownLogic(e: MouseEvent | TouchEvent, touched = false) {
+function gestureDownLogic(e: MouseEvent | TouchEvent, touched = false, isScramble = false) { 
     evil._setPickPositionWrapper(e, touched, canvas);
     let picked = pickHelper.pick(evil.pickPosition, rubiks.scene, rubiks.camera, rubiks.time, state);
     if (picked) {
         stateMachine.update("picked");
         rubiks.controls.enabled = false;
     }
+    if (isScramble) {} 
+        // need to fake a picking event to trigger the movement pipeline 
+        
 }
 
+let move = { };
 function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     if (!stateMachine.dragging) return;
     stateMachine.update("hovering");
@@ -127,7 +130,9 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     const q = engine.computeQuaternion(state, angle);
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
 
-    const move = engine.computeMove(state, angle);
+    move = engine.computeMove(state, angle);
+    //console.log(move);
+    if (move) evil.cubeMoveTrigger.dispatchEvent(evil.cubeMoveEvent); 
     engine.correctPositionsAfterRotation(state);
     rubiks.cleanUpSceneAfterRotation(state, q, cube);
 }
@@ -176,3 +181,27 @@ window.addEventListener('touchend', (event) => {
 window.addEventListener('resize', (_) => { 
     evil._handleWindowResize(rubiks.camera, rubiks.renderer, window);  
 }); 
+
+evil.cubeMoveTrigger.addEventListener('cubeMove', (event) => { 
+    console.log(event.detail);
+    adversary.respond(move);  
+}); 
+
+evil.scrambleTrigger.addEventListener('cubeDeathWarrantSigned', (event) => { 
+    console.log(event.detail); 
+    // scramble cube
+    yeet(); 
+});
+
+async function yeet() { 
+    for (let i = 0; i < 30; i ++) {
+        //gestureMoveLogic(); 
+        //await sleep(1000);  
+        //gestureUpLogic(); 
+    }
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)); 
+
+//function randomMove() {
+

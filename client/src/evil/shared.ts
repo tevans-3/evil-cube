@@ -1,7 +1,8 @@
 import * as THREE from 'three';
-
-export const DATABASE_FILE = "pruned_cpdb_d6.bin";
-
+ 
+export const base = import.meta.env.BASE_URL; 
+export const DATABASE_FILE = `${base}pruned_cpdb_d6.bin`;
+export const testMode = 1; 
 export const LAYER_ID = {
     '["cubelet_020","cubelet_021","cubelet_022","cubelet_120","cubelet_121","cubelet_122","cubelet_220","cubelet_221","cubelet_222"]': 0,
     '["cubelet_000","cubelet_001","cubelet_002","cubelet_100","cubelet_101","cubelet_102","cubelet_200","cubelet_201","cubelet_202"]': 1,
@@ -13,7 +14,7 @@ export const LAYER_ID = {
 
 // key format: "sign, angle, [axisA,axisB], layer"
 // pi/2 ? 1.570796 · pi ? 3.141593 · 3pi/2 ? 4.712389 · 2pi ? 6.283185
-export const MOVES = {
+export const MOVE_NAMES = {
     "1, 1.570796, x, 0": "U",
     "1, 1.570796, z, 0": "U",
     "-1, 1.570796, x, 0": "U'",
@@ -63,27 +64,26 @@ export const MOVES = {
     "1, 3.141593, x, 5": "B2",
     "1, 3.141593, y, 5": "B2",
 };
-
-export const MOVE_INDEXES = {
-    "U":  0, 
-    "U2": 1, 
-    "U'": 2, 
-    "D":  3, 
-    "D2": 4, 
-    "D'": 5, 
-    "R":  6, 
-    "R2": 7, 
-    "R'": 8, 
-    "L":  9, 
-    "L2": 10, 
-    "L'": 11, 
-    "F":  12, 
-    "F2": 13, 
-    "F'": 14, 
-    "B":  15, 
-    "B2": 16, 
-    "B'": 17
-}; 
+export const MOVES = {
+    "U":  { cp: [0, 1, 3, 7, 4, 5, 2, 6], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "U2": { cp: [0, 1, 7, 6, 4, 5, 3, 2], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "U'": { cp: [0, 1, 6, 2, 4, 5, 7, 3], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "D":  { cp: [1, 5, 2, 3, 0, 4, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "D2": { cp: [5, 4, 2, 3, 1, 0, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "D'": { cp: [4, 0, 2, 3, 5, 1, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "R":  { cp: [0, 1, 2, 3, 6, 4, 7, 5], co: [0, 0, 0, 0, 1, 2, 2, 1] },
+    "R2": { cp: [0, 1, 2, 3, 7, 6, 5, 4], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "R'": { cp: [0, 1, 2, 3, 5, 7, 4, 6], co: [0, 0, 0, 0, 1, 2, 2, 1] },
+    "L":  { cp: [2, 0, 3, 1, 4, 5, 6, 7], co: [2, 1, 1, 2, 0, 0, 0, 0] },
+    "L2": { cp: [3, 2, 1, 0, 4, 5, 6, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "L'": { cp: [1, 3, 0, 2, 4, 5, 6, 7], co: [2, 1, 1, 2, 0, 0, 0, 0] },
+    "F":  { cp: [0, 5, 2, 1, 4, 7, 6, 3], co: [0, 2, 0, 1, 0, 1, 0, 2] },
+    "F2": { cp: [0, 7, 2, 5, 4, 3, 6, 1], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "F'": { cp: [0, 3, 2, 7, 4, 1, 6, 5], co: [0, 2, 0, 1, 0, 1, 0, 2] },
+    "B":  { cp: [4, 1, 0, 3, 6, 5, 2, 7], co: [1, 0, 2, 0, 2, 0, 1, 0] },
+    "B2": { cp: [6, 1, 4, 3, 2, 5, 0, 7], co: [0, 0, 0, 0, 0, 0, 0, 0] },
+    "B'": { cp: [2, 1, 6, 3, 0, 5, 4, 7], co: [1, 0, 2, 0, 2, 0, 1, 0] }
+};
 
 export var mousePosition = { x: 0, y: 0 };
 

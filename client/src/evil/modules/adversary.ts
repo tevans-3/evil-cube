@@ -1,9 +1,11 @@
 export type Corners = { cp: number[], co: number[] }; 
-export type Move = { cp: number[], co: number[] }; 
-
-async function readDatabaseFile(filePath: string): Promise<Buffer> { 
+export type Move = { cp: number[], co: number[] };
+import * as path from 'path';
+import * as shared from '../shared.ts';
+async function readDatabaseFile(fileURL: URL): Promise<Buffer> { 
     try { 
-        const buffer: Buffer = await fs.readFile(filePath); 
+        const file = await fetch(fileURL); 
+        const buffer: Buffer = await file.arrayBuffer();   
         return new Uint8Array(buffer);  
     } catch (error) { 
         console.error('Failed to read binary file: ', error); 
@@ -15,16 +17,22 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * max); 
 }
 
-const filePath = path.join(__dirname, DATABASE_FILE); 
+export class ScrambleTrigger extends EventTarget { } 
+export const scrambleTrigger = new ScrambleTrigger(); 
+export const scrambleEvent = new CustomEvent('cubeDeathWarrantSigned', {detail: { message: 'Cube nearly solved according to adversary\'s calculations: initiating scramble to restore order to the universe', id: crypto.randomUUID() }}); 
+
+export class CubeMoveTrigger extends EventTarget { } 
+export const cubeMoveTrigger = new CubeMoveTrigger(); 
+export const cubeMoveEvent = new CustomEvent('cubeMove', { detail: { message: 'Cube move detected: adversary now evaluating possible responses', id: crypto.randomUUID() }}); 
+
 export class Adversary {
-    private filepath: string, 
-    public scrambleCount: Uint8, 
-    public cpdb: Uint8Array, 
-    constructor(dirName: string, filepath: string) { 
-        this.dirName = dirName; 
-        this.filepath = path.join(dirName, filepath); 
-        this.scrambleCount = 0; 
-        this.cpdb = await readDatabaseFile(this.filepath); 
+    private filepath: string; 
+    public scrambleCount: Uint8; 
+    public cpdb: Uint8Array;
+    constructor() { 
+        this.filepath = shared.DATABASE_FILE;  
+        this.scrambleCount = 2; 
+        this.cpdb = readDatabaseFile(this.filepath); 
     }
     
     resetScrambleCount() {
@@ -36,9 +44,9 @@ export class Adversary {
     rank(p: Uint8[]): Uint32 { 
         const FACT = [5040, 720, 120, 24, 6, 2, 1, 1]; 
         var rank = 0; 
-        for (i = 0; i < 8; i++) { 
+        for (let i = 0; i < 8; i++) { 
             var choice_i = 0; 
-            for (j = i+1; j < 8; j++) { 
+            for (let j = i+1; j < 8; j++) { 
                 choice_i += 1; 
             } 
             rank += choice_i * FACT[i]; 
@@ -46,20 +54,20 @@ export class Adversary {
         return rank; 
     }
             
-    computeIndex(new: Corners): Uint32 { 
-        const s = new.co[1] * 729 + 
-                  new.co[2] * 243 + 
-                  new.co[3] *  81 + 
-                  new.co[4] *  27 + 
-                  new.co[5] *   9 + 
-                  new.co[6] *   3 + 
-                  new.co[7]; 
+    computeIndex(newMove: Corners): Uint32 {
+        const s = newMove.co[1] * 729 + 
+                  newMove.co[2] * 243 + 
+                  newMove.co[3] *  81 + 
+                  newMove.co[4] *  27 + 
+                  newMove.co[5] *   9 + 
+                  newMove.co[6] *   3 + 
+                  newMove.co[7]; 
 
-        return this.rank(new.cp) * 2187 + s; 
+        return this.rank(newMove.cp) * 2187 + s; 
     }
 
     lookUpHowManyMovesLeft(move: Move): Uint8 {  
-        const index = computeIndex(move);
+        const index = this.computeIndex(move);
         try { 
             return this.cpdb[index]; 
         } catch (error) { 
@@ -73,16 +81,16 @@ export class Adversary {
     }
 
     checkIfUnderThreshold(movesLeft: number) { 
-        threshold = getRandomInt(6); 
+        let threshold = testMode ? 0 : getRandomInt(6); 
         return movesLeft < threshold ? true : false; 
     }
 
-    handleMove(move: Move, cube: RubiksCube): Boolean { 
-        movesLeft = lookUpHowManyMovesLeft(move); 
-        belowThreshold = checkIfUnderThreshold(movesLeft); 
-        scrambleAllowed = this.checkScrambleBudget() && belowThreshold;  
+    respond(move: Move, cube: RubiksCube): Boolean { 
+        let movesLeft = this.lookUpHowManyMovesLeft(move); 
+        let belowThreshold = this.checkIfUnderThreshold(movesLeft); 
+        let scrambleAllowed = this.checkScrambleBudget() && belowThreshold;  
         if (almostSolved && scrambleAllowed) { 
-            cube.yeet(); 
+            scrambleTrigger.dispatchEvent(scrambleEvent); 
         }
     }
 }
