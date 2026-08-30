@@ -81,7 +81,7 @@ export class Adversary {
     }
 
     checkIfUnderThreshold(movesLeft: number) { 
-        let threshold = testMode ? 0 : getRandomInt(6); 
+        let threshold = shared.testMode ? 0 : getRandomInt(6); 
         return movesLeft < threshold ? true : false; 
     }
 
@@ -89,7 +89,7 @@ export class Adversary {
         let movesLeft = this.lookUpHowManyMovesLeft(move); 
         let belowThreshold = this.checkIfUnderThreshold(movesLeft); 
         let scrambleAllowed = this.checkScrambleBudget() && belowThreshold;  
-        if (almostSolved && scrambleAllowed) { 
+        if (belowThreshold && scrambleAllowed)
             scrambleTrigger.dispatchEvent(scrambleEvent); 
         }
     }

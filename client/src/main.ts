@@ -136,6 +136,14 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     engine.correctPositionsAfterRotation(state);
     rubiks.cleanUpSceneAfterRotation(state, q, cube);
 }
+//scramble: 
+//assign a rotation axis 
+//assign a layer 
+//compute turns, angle 
+//call computeQuaternion 
+//state.layerToRotate.forEach 
+//correctPositions 
+//cleanUp
 
 /*  WE ARE EVENT LISTENERS!
 
