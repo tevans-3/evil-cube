@@ -12,6 +12,26 @@ export const LAYER_ID = {
     '["cubelet_000","cubelet_010","cubelet_020","cubelet_100","cubelet_110","cubelet_120","cubelet_200","cubelet_210","cubelet_220"]': 5,
 };
 
+export type Axis = 'x' | 'y' | 'z'; 
+export const SAFE_AXIS: Record<number, Axis> = {
+    0: 'y',
+    1: 'y', 
+    2: 'x', 
+    3: 'x', 
+    4: 'z', 
+    5: 'z',
+}; 
+export function axisToVector(axis: Axis) { 
+    switch (axis) { 
+        case 'x':  
+            return new THREE.Vector3(1, 0, 0); 
+        case 'y': 
+            return new THREE.Vector3(0, 1, 0); 
+        case 'z': 
+            return new THREE.Vector3(0, 0, 1); 
+    }
+}
+
 // key format: "sign, angle, [axisA,axisB], layer"
 // pi/2 ? 1.570796 · pi ? 3.141593 · 3pi/2 ? 4.712389 · 2pi ? 6.283185
 export const MOVE_NAMES = {

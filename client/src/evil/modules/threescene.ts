@@ -54,8 +54,8 @@ export class ThreeScene {
         }
     }
 
-    cleanUpSceneAfterRotation(state: InteractionState, q: THREE.Quaternion, cube: THREE.Object3D) { 
-        this.pivot.quaternion.copy(q);
+    cleanUpSceneAfterRotation(state: InteractionState, q: THREE.Quaternion, cube: THREE.Object3D, scramble: Boolean) { 
+        if (!scramble) this.pivot.quaternion.copy(q);
         state.layerToRotate.forEach((cubelet: Cubelet) => cube.attach(cubelet));
         this.scene.remove(this.pivot);
         evil._clearPickPosition();

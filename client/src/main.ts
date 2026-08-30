@@ -115,39 +115,36 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     if (!stateMachine.dragging) return;
     stateMachine.update("hovering");
     rubiks.setUpScenePreRotation(state, e, touched, canvas);
-
     const turns = engine.computeTurns(state);
     const angle = engine.computeAngle(turns);
      
     const q = engine.computeQuaternion(state, angle);
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
-
     move = engine.computeMove(state, angle);
-    //console.log(move);
     engine.correctPositionsAfterRotation(state);
-    rubiks.cleanUpSceneAfterRotation(state, q, cube);
+    rubiks.cleanUpSceneAfterRotation(state, q, cube, false);
     if (move) evil.cubeMoveTrigger.dispatchEvent(evil.cubeMoveEvent);
 }
 
 function scramble(cube: any, e: any) { 
-    let axis_index = evil.getRandomInt(3); 
-    let axis = engine.axes[axis_index];  
     let layer_index = evil.getRandomInt(6); 
     let layer = Object.fromEntries( 
         Object.entries(evil.LAYER_ID).map(([layer, id]) => [id, layer])
     )[layer_index];
-    state.dragDistance = 1;
+    let axis = evil.axisToVector(evil.SAFE_AXIS[layer_index]); 
+    console.log(axis, layer_index); 
+    //state.reset(); 
     state.rotateAroundAxis = axis;
     state.layerToRotate = cube.children
         .filter(c => layer.includes(c.name)) as Cubelet[];
     rubiks.setUpPivot(state, evil.center);
     rubiks.setUpScenePreRotation(state, e, false, canvas);
-    const turns = engine.computeTurns(state); 
-    const angle = engine.computeAngle(turns); 
+    const angle = Math.PI/2; 
     const q = engine.computeQuaternion(state, angle);
+    console.log(q); 
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
     engine.correctPositionsAfterRotation(state); 
-    rubiks.cleanUpSceneAfterRotation(state, q, cube);
+    rubiks.cleanUpSceneAfterRotation(state, q, cube, true);
 }
 /*  WE ARE EVENT LISTENERS!
 
@@ -206,7 +203,7 @@ evil.scrambleTrigger.addEventListener('cubeDeathWarrantSigned', (event) => {
 });
 
 async function yeet(e) { 
-    for (let i = 0; i < 30; i ++) {
+    for (let i = 0; i < 1; i ++) {
         scramble(cube, e);  
     }
 }
