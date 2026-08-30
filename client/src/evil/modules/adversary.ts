@@ -5,7 +5,7 @@ import * as shared from '../shared.ts';
 async function readDatabaseFile(fileURL: URL): Promise<Buffer> { 
     try { 
         const file = await fetch(fileURL); 
-        const buffer: Buffer = await file.arrayBuffer();   
+        const buffer: Buffer = await file.arrayBuffer(); 
         return new Uint8Array(buffer);  
     } catch (error) { 
         console.error('Failed to read binary file: ', error); 
@@ -13,7 +13,7 @@ async function readDatabaseFile(fileURL: URL): Promise<Buffer> {
     }
 }
 
-function getRandomInt(max) { 
+export function getRandomInt(max) { 
     return Math.floor(Math.random() * max); 
 }
 
@@ -32,7 +32,11 @@ export class Adversary {
     constructor() { 
         this.filepath = shared.DATABASE_FILE;  
         this.scrambleCount = 2; 
-        this.cpdb = readDatabaseFile(this.filepath); 
+        readDatabaseFile(this.filepath)
+            .then((result) => { 
+                this.cpdb = result;
+            })
+            .catch((error) => { }); 
     }
     
     resetScrambleCount() {
@@ -67,8 +71,8 @@ export class Adversary {
     }
 
     lookUpHowManyMovesLeft(move: Move): Uint8 {  
-        const index = this.computeIndex(move);
-        try { 
+        const index = 1;// this.computeIndex(move);
+        try {
             return this.cpdb[index]; 
         } catch (error) { 
             console.log('>= 6 moves away from a solve.');
@@ -77,19 +81,19 @@ export class Adversary {
     }
 
     checkScrambleBudget() { 
-        return this.scrambleCount < 2 ? true : false; 
+        return this.scrambleCount > 0 ? true : false; 
     }
 
     checkIfUnderThreshold(movesLeft: number) { 
-        let threshold = shared.testMode ? 0 : getRandomInt(6); 
+        let threshold = shared.testMode ? 1e10 : getRandomInt(6); 
         return movesLeft < threshold ? true : false; 
     }
 
     respond(move: Move, cube: RubiksCube): Boolean { 
         let movesLeft = this.lookUpHowManyMovesLeft(move); 
         let belowThreshold = this.checkIfUnderThreshold(movesLeft); 
-        let scrambleAllowed = this.checkScrambleBudget() && belowThreshold;  
-        if (belowThreshold && scrambleAllowed)
+        let scrambleAllowed = this.checkScrambleBudget() && belowThreshold;
+        if (scrambleAllowed) {
             scrambleTrigger.dispatchEvent(scrambleEvent); 
         }
     }

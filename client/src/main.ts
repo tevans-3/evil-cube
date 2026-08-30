@@ -9,14 +9,6 @@ import * as THREE from 'three';
 // 4. Asked Claude Opus 4.8 (browser chat) some debugging and conceptual questions (OOP refactor, rotation math and APIs)
 // 5. https://stackoverflow.com/questions/500221/how-would-you-represent-a-rubiks-cube-in-code\
 
-
-// NEED:  
-//       apply move to cuber's current state (stored in the browser, no authoritative validation, FIWB) 
-//       hash and compute index, if index > len(bin blob), it's nowhere near solved 
-//                               else, seek that range, skipping chunks until you locate where that index should sit, then load that chunk 
-        //                               if it's less than threshold, YEET 
-// 
-
 let canvas: HTMLCanvasElement;
 
 const debug = false;
@@ -132,19 +124,31 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
 
     move = engine.computeMove(state, angle);
     //console.log(move);
-    if (move) evil.cubeMoveTrigger.dispatchEvent(evil.cubeMoveEvent); 
     engine.correctPositionsAfterRotation(state);
     rubiks.cleanUpSceneAfterRotation(state, q, cube);
+    if (move) evil.cubeMoveTrigger.dispatchEvent(evil.cubeMoveEvent);
 }
-//scramble: 
-//assign a rotation axis 
-//assign a layer 
-//compute turns, angle 
-//call computeQuaternion 
-//state.layerToRotate.forEach 
-//correctPositions 
-//cleanUp
 
+function scramble(cube: any, e: any) { 
+    let axis_index = evil.getRandomInt(3); 
+    let axis = engine.axes[axis_index];  
+    let layer_index = evil.getRandomInt(6); 
+    let layer = Object.fromEntries( 
+        Object.entries(evil.LAYER_ID).map(([layer, id]) => [id, layer])
+    )[layer_index];
+    state.dragDistance = 1;
+    state.rotateAroundAxis = axis;
+    state.layerToRotate = cube.children
+        .filter(c => layer.includes(c.name)) as Cubelet[];
+    rubiks.setUpPivot(state, evil.center);
+    rubiks.setUpScenePreRotation(state, e, false, canvas);
+    const turns = engine.computeTurns(state); 
+    const angle = engine.computeAngle(turns); 
+    const q = engine.computeQuaternion(state, angle);
+    state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
+    engine.correctPositionsAfterRotation(state); 
+    rubiks.cleanUpSceneAfterRotation(state, q, cube);
+}
 /*  WE ARE EVENT LISTENERS!
 
     WHAT IS OUR PURPOSE IN LIFE? 
@@ -198,14 +202,12 @@ evil.cubeMoveTrigger.addEventListener('cubeMove', (event) => {
 evil.scrambleTrigger.addEventListener('cubeDeathWarrantSigned', (event) => { 
     console.log(event.detail); 
     // scramble cube
-    yeet(); 
+    yeet(event); 
 });
 
-async function yeet() { 
+async function yeet(e) { 
     for (let i = 0; i < 30; i ++) {
-        //gestureMoveLogic(); 
-        //await sleep(1000);  
-        //gestureUpLogic(); 
+        scramble(cube, e);  
     }
 }
 
