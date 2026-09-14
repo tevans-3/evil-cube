@@ -158,4 +158,33 @@ export class RubiksCube {
         scene.add(cube); 
         return cube; 
     }
+
+    //TODO fix this. does not actually delete cube
+    delete = () => { 
+        this.traverse((child) => { 
+            if (child.isMesh) { 
+                child.geometry.dispose(); 
+                
+                if (child.material) { 
+                    if (Array.isArray(child.material)) { 
+                        child.material.forEach((mat) => this.disposeMaterial(mat)); 
+                    } else { 
+                        disposeMaterial(child.material); 
+                    }
+                }
+            }
+        }); 
+        this.removeFromParent(); 
+    } 
+
+    disposeMaterial(material) { 
+        for (const key of Object.keys(material)) { 
+            const value = material[key]; 
+            if (value && typeof value == 'object' && 'minFilter' in value) { 
+                value.dispose(); 
+            } 
+        } 
+        material.dispose(); 
+    }
+
 }

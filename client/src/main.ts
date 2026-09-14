@@ -126,7 +126,11 @@ function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     if (move) evil.cubeMoveTrigger.dispatchEvent(evil.cubeMoveEvent);
 }
 
-function scramble(cube: any, e: any) { 
+function scramble(cube: RubiksCube, e: any) {
+    //TODO find a way to scramble without deleting and respawning
+    cube.delete; 
+    cubeInit = new evil.RubiksCube(maxAnisotropy); 
+    cube = cubeInit.visualize(rubiks.scene); 
     let layer_index = evil.getRandomInt(6); 
     let layer = Object.fromEntries( 
         Object.entries(evil.LAYER_ID).map(([layer, id]) => [id, layer])
