@@ -41,25 +41,29 @@ fn update_state(state: &State, mv: Move) -> State {
 	let mut new: State = State{ cp: vec![0,0,0,0,0,0,0,0], co: vec![0,0,0,0,0,0,0,0] }; 
 	for j in 0..8 { 
 		let idx: usize = mv.cp[j] as usize; 
-		new.cp[idx] = (*state).cp[j]; 
-		new.co[idx] = ((*state).co[j] + mv.co[j]) % 3;  
+		new.cp[idx] = state.cp[j]; 
+		new.co[idx] = (state.co[j] + mv.co[j]) % 3;  
 	}
 	new
 }
 
 pub struct BreadthFirstCornerSearcher { 
-	visited: u32,
 	explored_moves: VecDeque<State>,
 }
 
+impl Default for BreadthFirstCornerSearcher { 
+    fn default() -> Self { 
+        Self::new() 
+    } 
+} 
+
 impl BreadthFirstCornerSearcher { 
-	pub fn new() -> BreadthFirstCornerSearcher { 
+	pub fn new() -> BreadthFirstCornerSearcher {
 		BreadthFirstCornerSearcher {
-			visited: 0,
 			explored_moves: VecDeque::<State>::new(),
 		}
 	}
-
+    
 	pub fn perform_bfs(&mut self, identity_state: State, pdb: &mut Box<DbStorage>) { 
 		self.explored_moves.push_back(identity_state.clone()); 
 		pdb.set_at_index(pdb.get_index(&identity_state).try_into().unwrap(), 0); 
@@ -98,7 +102,7 @@ impl DbStorage {
 		}
 	}
 
-	fn rank(p: &Vec<u8>) -> u32 { 
+	fn rank(p: &[u8]) -> u32 { 
 		const FACT: [u32; 8] = [5040, 720, 120, 24, 6, 2, 1, 1]; 
 		let mut rank = 0u32; 
 		for i in 0..8 { 
