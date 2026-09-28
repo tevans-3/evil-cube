@@ -5,7 +5,8 @@ import * as shared from '../shared.ts';
 async function readDatabaseFile(fileURL: URL): Promise<Buffer> { 
     try { 
         const file = await fetch(fileURL); 
-        const buffer: Buffer = await file.arrayBuffer(); 
+        const buffer: Buffer = await file.arrayBuffer();
+        console.log(buffer.byteLength);
         return new Uint8Array(buffer);  
     } catch (error) { 
         console.error('Failed to read binary file: ', error); 
@@ -65,13 +66,13 @@ export class Adversary {
                   newMove.co[4] *  27 + 
                   newMove.co[5] *   9 + 
                   newMove.co[6] *   3 + 
-                  newMove.co[7]; 
-
+                  newMove.co[7];
+        console.log(newMove);
         return this.rank(newMove.cp) * 2187 + s; 
     }
 
     lookUpHowManyMovesLeft(move: Move): Uint8 {  
-        const index = 1;// this.computeIndex(move);
+        const index = this.computeIndex(move);
         try {
             return this.cpdb[index]; 
         } catch (error) { 
@@ -93,6 +94,7 @@ export class Adversary {
         let movesLeft = this.lookUpHowManyMovesLeft(move); 
         let belowThreshold = this.checkIfUnderThreshold(movesLeft); 
         let scrambleAllowed = this.checkScrambleBudget() && belowThreshold;
+        console.log(scrambleAllowed, movesLeft, belowThreshold);
         if (scrambleAllowed) {
             scrambleTrigger.dispatchEvent(scrambleEvent); 
         }

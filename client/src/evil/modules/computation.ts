@@ -1,5 +1,6 @@
 ﻿import type { InteractionState, Cubelet } from ".";
-import { LAYER_ID, MOVE_NAMES, MOVES } from "../shared.ts";
+import { _principalComponent, MIDDLE_LAYER, 
+    LAYER_BY_AXIS, MOVE_NAMES, MOVES } from "../shared.ts";
 import * as THREE from 'three';
 export class ComputationEngine {
     constructor() {
@@ -126,19 +127,34 @@ export class ComputationEngine {
         );
     }
 
-    computeLayerId(layerArr: any) { 
-        return LAYER_ID[JSON.stringify(layerArr.sort())] ?? null; 
+    computeLayerId(state: InteractionState) {  
+        if (!state.layerToRotate.length || !state.rotateAroundAxis) return; 
+        const axis = _principalComponent(state.rotateAroundAxis); 
+        const p = new THREE.Vector3(); 
+        state.layerToRotate[0].getWorldPosition(p); 
+        const v = p[axis]; 
+        const eps = 1e-3;
+        if (Math.abs(v - 2/3) < eps) return LAYER_BY_AXIS[axis][0]; 
+        if (Math.abs(v) < eps) return LAYER_BY_AXIS[axis][1];
+        if (Math.abs(v - 1/3) < eps) return MIDDLE_LAYER[axis]; 
+        return null; 
+    }
+    
+    normalizeQuarterTurns(angle: number): number {
+        const turns = Math.round(angle / (Math.PI / 2)); 
+        return ((turns % 4) + 4) % 4;                     
     }
 
     computeMove(state: InteractionState, angle: number) { 
         const layer = state.layerToRotate.map((c: evil.Cubelet) => c.name);
-        const layerId = this.computeLayerId(layer); 
-        if (layerId == null) return;  
+        const layerId = this.computeLayerId(state);
+        if (layerId == null) return; 
+        const turns = this.normalizeQuarterTurns(angle); 
+        const normAngle = turns * (Math.PI / 2);
         const axis = state.normalAxis; 
         const sign = new THREE.Vector3(1, 1, 1,).dot(state.rotateAroundAxis);
-        const key = `${sign}, ${angle.toFixed(6)}, ${axis}, ${layerId}`; 
-        const move_name = MOVE_NAMES[key] ?? null; 
-        //console.log(move_name, layer, axis, sign);
+        const key = `${sign}, ${normAngle.toFixed(6)}, ${axis}, ${layerId}`;
+        const move_name = MOVE_NAMES[key] ?? null; //moveName(angle < 0 ? -1 : 1, angle, layer);
         return MOVES[move_name] ?? null; 
     }
 }

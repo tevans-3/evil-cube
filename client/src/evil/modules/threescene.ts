@@ -46,16 +46,16 @@ export class ThreeScene {
         document.body.appendChild(this.renderer.domElement); 
     }
 
-    setUpScenePreRotation(state: InteractionState, e: MouseEvent | TouchEvent, touched: boolean, canvas: HTMLCanvasElement) { 
-        evil._setPickPositionWrapper(e, touched, canvas);
+    setUpScenePreRotation(state: InteractionState, e?: MouseEvent | TouchEvent, touched: boolean, canvas: HTMLCanvasElement) { 
+        if (e && canvas) evil._setPickPositionWrapper(e, touched, canvas);
         this.controls.enabled = true;
-        if (!state.layerToRotate) {
+        if (!state.layerToRotate?.length) {
             state.reset(); return;
         }
     }
 
-    cleanUpSceneAfterRotation(state: InteractionState, q: THREE.Quaternion, cube: THREE.Object3D, scramble: Boolean) { 
-        if (!scramble) this.pivot.quaternion.copy(q);
+    cleanUpSceneAfterRotation(state: InteractionState, q: THREE.Quaternion, cube: THREE.Object3D) {
+        this.pivot.quaternion.copy(q);
         state.layerToRotate.forEach((cubelet: Cubelet) => cube.attach(cubelet));
         this.scene.remove(this.pivot);
         evil._clearPickPosition();

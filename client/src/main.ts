@@ -6,7 +6,7 @@ import * as THREE from 'three';
 // 1. THREE.js documentation
 // 2. https://github.com/joews/rubik-js/blob/master/rubik.rubik-js
 // 3. https://cs.stanford.edu/people/karpathy/reinforcejs/
-// 4. Asked Claude Opus 4.8 (browser chat) some debugging and conceptual questions (OOP refactor, rotation math and APIs)
+// 4. Asked Claude Opus 4.8 and 5.5 (browser chat) some debugging and conceptual questions (OOP refactor, rotation math/logic and APIs)
 // 5. https://stackoverflow.com/questions/500221/how-would-you-represent-a-rubiks-cube-in-code\
 
 let canvas: HTMLCanvasElement;
@@ -26,7 +26,10 @@ let cubeInit = new evil.RubiksCube(maxAnisotropy);
 let cube = cubeInit.visualize(rubiks.scene); 
 let adversary = new evil.Adversary(); 
 canvas = rubiks.canvas;
-
+let scrambling = false; 
+for (let i = 0; i < 5; i++) { 
+    yeet(); 
+} 
 evil._clearPickPosition();
 
 const pickHelper = new evil.PickHelper();
@@ -46,6 +49,7 @@ rubiks.renderer.setAnimationLoop(animate);
 const engine = new evil.ComputationEngine();
 function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
     if (!stateMachine.picked && !stateMachine.dragging) return;
+    if (scrambling) return; 
 
     evil._setPickPositionWrapper(e, touched, canvas);
 
@@ -58,7 +62,6 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
 
     if (!result) return;
     const currentDragWorld = engine.computeDragWorld(state, intersectionPoint);
-
     // this only executes once per gesture (well, it should)
     if (stateMachine.picked) {
 
@@ -78,7 +81,7 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
             state.dragEndPoint = intersectionPoint;
             // the current drag, difference between the current cursor position and 
             // the hit point 
-            const dragWorld = engine.computeDragWorld(state, state.dragEndPoint);//.clone().sub(state.clickedOnPoint));
+            const dragWorld = engine.computeDragWorld(state, state.dragEndPoint);
             let inPlaneAxes = engine.computeInPlaneAxes(state);
             engine.computeDragDir(state, dragWorld, inPlaneAxes);
             engine.computeRotationAxis(state);
@@ -93,12 +96,12 @@ function gestureMoveLogic(e: MouseEvent | TouchEvent, touched = false) {
         if (result) {
             const q = engine.computePreviewQuaternion(state, currentDragWorld);
             rubiks.previewRotation(q);
-
         }
     }
 }
 
 function gestureDownLogic(e: MouseEvent | TouchEvent, touched = false, isScramble = false) { 
+    if (scrambling) return; 
     evil._setPickPositionWrapper(e, touched, canvas);
     let picked = pickHelper.pick(evil.pickPosition, rubiks.scene, rubiks.camera, rubiks.time, state);
     if (picked) {
@@ -113,42 +116,71 @@ function gestureDownLogic(e: MouseEvent | TouchEvent, touched = false, isScrambl
 let move = { };
 function gestureUpLogic(e: MouseEvent | TouchEvent, touched = false) {
     if (!stateMachine.dragging) return;
+    if (scrambling) return; 
     stateMachine.update("hovering");
     rubiks.setUpScenePreRotation(state, e, touched, canvas);
     const turns = engine.computeTurns(state);
     const angle = engine.computeAngle(turns);
-     
     const q = engine.computeQuaternion(state, angle);
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
+    rubiks.setUpScenePreRotation(state, e, touched, canvas);
     move = engine.computeMove(state, angle);
     engine.correctPositionsAfterRotation(state);
-    rubiks.cleanUpSceneAfterRotation(state, q, cube, false);
+    rubiks.cleanUpSceneAfterRotation(state, q, cube);
+    console.log(move);
     if (move) evil.cubeMoveTrigger.dispatchEvent(evil.cubeMoveEvent);
 }
 
-function scramble(cube: RubiksCube, e: any) {
-    //TODO find a way to scramble without deleting and respawning
-    cube.delete; 
-    cubeInit = new evil.RubiksCube(maxAnisotropy); 
-    cube = cubeInit.visualize(rubiks.scene); 
-    let layer_index = evil.getRandomInt(6); 
+function inLayer(c: evil.Cubelet, layerIndex: number) { 
+    const max = 2 / 3, eps = 1e-3, mid = 1 / 3; 
+    const p = c.position;
+    switch (layerIndex) { 
+        case 0: return Math.abs(p.y - max) < eps;  
+        case 1: return Math.abs(p.y) < eps; 
+        case 2: return Math.abs(p.x - max) < eps; 
+        case 3: return Math.abs(p.x) < eps; 
+        case 4: return Math.abs(p.z - max) < eps; 
+        case 5: return Math.abs(p.z) < eps;
+        case 6: return Math.abs(p.y - mid) < eps; 
+        case 7: return Math.abs(p.x - mid) < eps; 
+        case 8: return Math.abs(p.z - mid) < eps; 
+    }
+    return false; 
+}
+
+function animateLayerTurn(angle: number, ms = 200): Promise<void> {
+    return new Promise((resolve) => { 
+        const start = performance.now(); 
+        const step  = (now: number) => { 
+            const t = Math.min((now - start) / ms, 1);
+            const eased = t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
+            rubiks.previewRotation(engine.computeQuaternion(state, angle*eased)); 
+            if (t < 1) requestAnimationFrame(step); 
+            else resolve(); 
+        }; 
+        requestAnimationFrame(step); 
+    }); 
+} 
+
+
+async function scramble(e: Event) { 
+    let layer_index = evil.getRandomInt(9);  
     let layer = Object.fromEntries( 
         Object.entries(evil.LAYER_ID).map(([layer, id]) => [id, layer])
     )[layer_index];
-    let axis = evil.axisToVector(evil.SAFE_AXIS[layer_index]); 
-    console.log(axis, layer_index); 
-    //state.reset(); 
+    let axis = evil.axisToVector(evil.SAFE_AXIS[layer_index]);
+    state.reset(); 
     state.rotateAroundAxis = axis;
     state.layerToRotate = cube.children
-        .filter(c => layer.includes(c.name)) as Cubelet[];
+        .filter(c => inLayer(c, layer_index)) as evil.Cubelet[];
     rubiks.setUpPivot(state, evil.center);
-    rubiks.setUpScenePreRotation(state, e, false, canvas);
+    rubiks.setUpScenePreRotation(state, true, false, canvas);
     const angle = Math.PI/2; 
+    await animateLayerTurn(angle); 
     const q = engine.computeQuaternion(state, angle);
-    console.log(q); 
     state.layerToRotate.forEach((c: evil.Cubelet) => engine.computeQuaternionRotation(q, c, evil.center));
     engine.correctPositionsAfterRotation(state); 
-    rubiks.cleanUpSceneAfterRotation(state, q, cube, true);
+    rubiks.cleanUpSceneAfterRotation(state, q, cube);
 }
 /*  WE ARE EVENT LISTENERS!
 
@@ -206,13 +238,21 @@ evil.scrambleTrigger.addEventListener('cubeDeathWarrantSigned', (event) => {
     yeet(event); 
 });
 
+
 async function yeet(e) { 
-    for (let i = 0; i < 1; i ++) {
-        scramble(cube, e);  
-    }
+    if (scrambling) return; 
+    scrambling = true; 
+    rubiks.controls.enabled = false; 
+    try { 
+        for (let i = 0; i < 15; i ++) {
+            await scramble(cube, e); 
+        }
+    } finally { 
+        scrambling = false; 
+        rubiks.controls.enabled = true; 
+    } 
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)); 
 
-//function randomMove() {
 
